@@ -3,19 +3,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
-import { LoggingInterceptor } from './common/interceptros/logging.interceptor';
 import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
-import { BlogModule } from './blog/blog.module';
+import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeOrmConfig),
     ArticlesModule,
     AuthModule,
-    UsersModule,
-    BlogModule
+    UsersModule
   ],
   providers: [
     {
