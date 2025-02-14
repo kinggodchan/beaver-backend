@@ -1,6 +1,6 @@
-import { ArticleStatus } from "../entites/article-status.enum";
-import { Article } from "../entites/article.entity";
-import { UserResponseDto } from "src/users/dto/user-response.dto";
+import { ArticleStatus } from "../entities/article-status.enum";
+import { Article } from "../entities/article.entity";
+
 
 
 export class ArticleResponseDto{

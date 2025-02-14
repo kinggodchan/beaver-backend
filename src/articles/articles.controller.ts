@@ -1,19 +1,19 @@
 import { Body, Controller,  Delete,  Get, HttpStatus, Logger, Param,  Patch,  Post, Put, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ArticleService} from './articles.service';
-import { Article} from './entites/article.entity';
-import { CreateArticleRequestDto  } from './dto/create-article-request.dto';
-import { ArticleStatus } from './entites/article-status.enum';
-import { UpdateArticleRequestDto  } from './dto/update-article-request.dto';
-import { ArticleStatusValidationPipe } from '../common/pipes/article-status-validation.pipe';
-import {ArticleResponseDto} from './dto/article-response.dto';
-import { SearchArticleResponseDto  } from './dto/search-article-response.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/custom-guards-decorators/custom-role.guard';
 import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
 import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { UserRole } from 'src/users/entities/user-role.enum';
+import { CreateArticleRequestDto } from './dto/create-article-request.dto';
+import { ArticleResponseDto } from './dto/article-response.dto';
+import { Article } from './entities/article.entity';
+import { SearchArticleResponseDto } from './dto/search-article-request.dto';
+import { UpdateArticleRequestDto } from './dto/update-article-request.dto';
+import { ArticleStatusValidationPipe } from 'src/common/pipes/article-status-validation.pipe';
+import { ArticleStatus } from './entities/article-status.enum';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('api/articles')
 @UseGuards(AuthGuard(), RolesGuard)
@@ -88,7 +88,7 @@ export class ArticleController {
     @Put('/:id')
     async updateArticleById(
         @Param('id') id: number, 
-        @Body() updateArticleRequestDto  : UpdateArticleRequestDto  ): Promise<ApiResponseDto<void>> {
+        @Body() updateArticleRequestDto  : UpdateArticleRequestDto): Promise<ApiResponseDto<void>> {
         this.logger.verbose(`ADMIN is trying to Updating  a article by id: ${id} with updateArticleRequestDto  `);
 
         await this.articleService.updateArticleById(id, updateArticleRequestDto)

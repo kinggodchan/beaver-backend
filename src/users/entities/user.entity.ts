@@ -1,7 +1,8 @@
 import { Column, Entity, OneToMany } from "typeorm";
 import { UserRole } from "./user-role.enum";
-import { Article } from "src/articles/entites/article.entity";
+import { Article } from "src/articles/entities/article.entity";
 import { CommonEntity } from "src/common/entites/common.entity";
+
 
 @Entity()
 export class User extends CommonEntity{

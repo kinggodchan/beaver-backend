@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne} from "typeorm";
-import { ArticleStatus } from "./article-status.enum"
 import { User } from "src/users/entities/user.entity";
 import { CommonEntity } from "src/common/entites/common.entity";
+import { ArticleStatus } from "./article-status.enum";
 
 
 @Entity()
