@@ -11,12 +11,18 @@ export class TeamsService {
   
   constructor(
     @InjectRepository(Team)
-    private teamRepository: Repository<Team>
+    private teamsRepository: Repository<Team>
   ) {}
 
   async createTeam(createTeamRequestDto: CreateTeamRequestDto): Promise<void>{
+    const { team_name, location } = createTeamRequestDto;
 
+    const newTeam = this.teamsRepository.create({
+      team_name,
+      location,
+    });
     
+    await this.teamsRepository.save(newTeam);
   }
 
   // findAll() {
