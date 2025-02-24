@@ -3,12 +3,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { User } from '../../users/entities/user.entity'; // User 엔터티 경로에 맞게 변경
 import * as dotenv from 'dotenv';
-import { UserService } from 'src/users/users.service';
+import { UsersService } from 'src/users/users.service';
 
 dotenv.config();
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(private usersService: UserService) {
+    constructor(private usersService: UsersService) {
          // [3] Cookie에 있는 JWT 토큰을 추출
         super({
             secretOrKey: process.env.JWT_SECRET|| 'default-secret-key', // Secret Key 설정
