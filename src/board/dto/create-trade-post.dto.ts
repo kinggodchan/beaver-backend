@@ -1,6 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { TradeStatus } from '../entities/trade-post.entity';
-
+import { TradeStatus } from '../enums/trade-status.enum';
 
 export class CreateTradePostDto {
   @IsNotEmpty()
@@ -15,7 +14,7 @@ export class CreateTradePostDto {
   @IsNumber()
   price: number;
 
-  @IsEnum(TradeStatus)
+  @IsEnum(TradeStatus)  
   tradeStatus: TradeStatus;
 
   @IsNotEmpty()
