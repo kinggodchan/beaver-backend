@@ -17,7 +17,7 @@ export class Team {
   @Column({ length: 255 })
   location: string;
 
-  @Column({ default: 0 })
+  @Column({ default: 1 })
   member_count: number;
 
   @Column({ default: 0 })
