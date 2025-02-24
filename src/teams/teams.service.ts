@@ -1,11 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTeamDto } from './dto/create-team.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Team } from './entities/team.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TeamsService {
-  create(createTeamDto: CreateTeamDto) {
-    return 'This action adds a new team';
+  private readonly logger = new Logger(TeamsService.name);
+  
+  constructor(
+    @InjectRepository(Team)
+    private teamRepository: Repository<Team>
+  ) {}
+
+  async createTeam(createTeamRequestDto: CreateTeamRequestDto): Promise<void>{
+
+    
   }
 
   // findAll() {
