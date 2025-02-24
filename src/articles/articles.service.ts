@@ -57,7 +57,7 @@ export class ArticleService {
 
         const foundArticles = await this.articleRepository.createQueryBuilder('article')
         .leftJoinAndSelect('article.user', 'user') 
-        .where('article.userId = :userId', { userId: logginedUser.id})
+        .where('article.userId = :userId', { userId: logginedUser.user_id})
         .getMany();
 
         this.logger.verbose(`Retrieving ${logginedUser.username}'s all Articles Successfully`);
@@ -136,7 +136,7 @@ export class ArticleService {
 
         const foundArticle = await this.getArticleDetailById(id);
         // 작성자와 요청한 사용자가 같은지 확인
-        if(foundArticle.user.id !== loggindeUser.id) {
+        if(foundArticle.user.user_id !== loggindeUser.user_id) {
             throw new UnauthorizedException('Do not have permission th delete this article')
         }
         await this.articleRepository.delete(foundArticle);

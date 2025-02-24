@@ -9,7 +9,7 @@ export class UserResponseDto{
     role: UserRole;
 
     constructor(user: User) {
-        this.id = user.id;
+        this.id = user.user_id;
         this.username = user.username;
         this.email = user.email;
         this.role = user.role;
