@@ -7,8 +7,10 @@ import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TeamsModule } from './teams/teams.module';
 import { BoardModule } from './board/board.module';
 import { CommentModule } from './comment/comment.module';
+
 
 
 @Module({
@@ -17,6 +19,7 @@ import { CommentModule } from './comment/comment.module';
     ArticlesModule,
     AuthModule,
     UsersModule,
+    TeamsModule,
     BoardModule,
     CommentModule
   ],
