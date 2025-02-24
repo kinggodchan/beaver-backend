@@ -8,6 +8,9 @@ import { ArticlesModule } from './articles/articles.module';
 import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TeamsModule } from './teams/teams.module';
+import { BoardModule } from './board/board.module';
+import { CommentModule } from './comment/comment.module';
+
 
 
 @Module({
@@ -17,6 +20,8 @@ import { TeamsModule } from './teams/teams.module';
     AuthModule,
     UsersModule,
     TeamsModule,
+    BoardModule,
+    CommentModule
   ],
   providers: [
     {
