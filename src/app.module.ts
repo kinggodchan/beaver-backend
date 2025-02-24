@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TeamsModule } from './teams/teams.module';
 
 
 @Module({
@@ -14,7 +15,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     TypeOrmModule.forRoot(typeOrmConfig),
     ArticlesModule,
     AuthModule,
-    UsersModule
+    UsersModule,
+    TeamsModule,
   ],
   providers: [
     {
