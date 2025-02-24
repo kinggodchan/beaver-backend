@@ -3,13 +3,13 @@ import { TeamsService } from './teams.service';
 import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 
-@Controller('teams')
+@Controller('api/teams')
 export class TeamsController {
   constructor(private readonly teamsService: TeamsService) {}
 
   @Post()
-  create(@Body() createTeamDto: CreateTeamRequestDto) {
-    return this.teamsService.createTeam(createTeamDto);
+  create(@Body() createTeamRequestDto: CreateTeamRequestDto) {
+    return this.teamsService.createTeam(createTeamRequestDto);
   }
 
   // @Get()
