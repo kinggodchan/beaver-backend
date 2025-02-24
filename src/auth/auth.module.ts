@@ -6,19 +6,22 @@ import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
 
 dotenv.config();
 @Module({
-    imports: [
-      UsersModule,
-      PassportModule.register({ defaultStrategy: 'jwt' }),
-      JwtModule.register({
-        secret: process.env.JWT_SECRET,
-        signOptions:{
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    UsersModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions:{
         expiresIn: process.env.JWT_EXPIRATION,
-         }
-        }),
-      ],
+      }
+    }),
+  ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [JwtModule, PassportModule]

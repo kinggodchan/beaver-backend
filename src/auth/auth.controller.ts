@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { CreateUserRequestDto } from 'src/users/dto/create-user-request.dto';
 
 
 
@@ -12,7 +13,16 @@ export class AuthController {
     private readonly logger = new Logger(AuthController.name);
     constructor(private authService: AuthService) {}
 
+    // Sign-Up
+    @Post('/signup')
+    async signUp(@Body() createUserRequestDto: CreateUserRequestDto): Promise<ApiResponseDto<void>> {
+        this.logger.verbose(`Visitor is try to creating a new account with title: ${createUserRequestDto.email}`);
 
+        await this.authService.signUp(createUserRequestDto)
+
+        this.logger.verbose(`New account created Successfully`);
+        return new ApiResponseDto(true, HttpStatus.CREATED, 'User created Successfully');
+    }
 
     //Sign -In 
     @Post('/signin')
