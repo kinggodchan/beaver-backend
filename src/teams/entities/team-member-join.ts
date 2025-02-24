@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Team } from './team.entity';
 import { User } from 'src/users/entities/user.entity';
+import { JoinStatus } from './join-status.enum';
 
 @Entity()
 export class TeamMemberJoin {
@@ -13,8 +14,8 @@ export class TeamMemberJoin {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ type: 'enum', enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' })
-  status: 'Pending' | 'Approved' | 'Rejected';
+  @Column({ default: 'Pending' })
+  status: JoinStatus;
 
   @CreateDateColumn()
   created_at: Date;
