@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { BoardModule } from './board/board.module';
+import { CommentModule } from './comment/comment.module';
 
 
 @Module({
@@ -14,7 +16,9 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     TypeOrmModule.forRoot(typeOrmConfig),
     ArticlesModule,
     AuthModule,
-    UsersModule
+    UsersModule,
+    BoardModule,
+    CommentModule
   ],
   providers: [
     {
