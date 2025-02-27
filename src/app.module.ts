@@ -10,8 +10,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TeamsModule } from './teams/teams.module';
 import { BoardModule } from './board/board.module';
 import { CommentModule } from './comment/comment.module';
-
-
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -21,7 +20,8 @@ import { CommentModule } from './comment/comment.module';
     UsersModule,
     TeamsModule,
     BoardModule,
-    CommentModule
+    CommentModule,
+    ReportModule
   ],
   providers: [
     {
