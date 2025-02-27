@@ -1,9 +1,8 @@
 import { UserRole } from "../entities/user-role.enum";
 import { User } from "../entities/user.entity";
 
-
-export class UserResponseDto{
-    id:number;
+export class UserResponseDto {
+    id: number;
     username: string;
     email: string;
     role: UserRole;

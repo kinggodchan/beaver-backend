@@ -1,10 +1,10 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
-  import { UserRole } from "./user-role.enum";
-  import { Article } from "src/articles/entities/article.entity";
-  import { Comment } from "src/comment/entities/comment.entity";
-
-  import { UserLevel } from "./user-level.enum";
+import { UserRole } from "./user-role.enum";
+import { Article } from "src/articles/entities/article.entity";
+import { Comment } from "src/comment/entities/comment.entity";
+import { UserLevel } from "./user-level.enum";
 import { TradePost } from "src/board/entities/trade-post.entity";
+import { Report } from "src/report/entities/report.entity";
   
   @Entity()
   export class User {
