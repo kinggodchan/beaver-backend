@@ -10,11 +10,7 @@ export class Team {
 
   @Column({ length: 100 })
   team_name: string;
-
-  @JoinColumn()
-  @OneToOne(() => User, { eager: true })
-  captain: User;
-
+  
   @Column({ length: 255 })
   location: string;
 
@@ -40,6 +36,10 @@ export class Team {
 
   @OneToMany(() => TeamMemberJoin, (teamMemberJoin) => teamMemberJoin.team)
   members: TeamMemberJoin[];
+
+  @JoinColumn()
+  @OneToOne(() => User, { eager: true })
+  captain: User;
 
   // ✅ 추가된 부분: 팀 신고 관계
   @OneToMany(() => Report, (report) => report.reporterTeam, { cascade: true })
