@@ -14,22 +14,31 @@ export class TeamsService {
     private teamsRepository: Repository<Team>
   ) {}
 
+  // CREATE TEAM
   async createTeam(createTeamRequestDto: CreateTeamRequestDto): Promise<void>{
-    const { team_name, location } = createTeamRequestDto;
+    const { team_name, location, description, team_logo, } = createTeamRequestDto;
 
     const newTeam = this.teamsRepository.create({
       team_name,
       location,
+      description,
+      team_logo,
     });
     
     await this.teamsRepository.save(newTeam);
   }
 
-  // findAll() {
-  //   return `This action returns all teams`;
+  // READ ALL TEAMS
+  // async getAllTeams(): Promise<Team[]> {
+  //   this.logger.verbose(`Retrieving all Teams`);
+
+  //   const foundTeams = await this.teamsRepository.find();
+
+  //   this.logger.verbose(`Retrieved all Teams successfully`);
+  //   return foundTeams; 
   // }
 
-  // findOne(id: number) {
+  // async getTeamDetailById(id: number) {
   //   return `This action returns a #${id} team`;
   // }
 
