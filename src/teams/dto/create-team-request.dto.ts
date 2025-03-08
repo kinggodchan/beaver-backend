@@ -14,8 +14,4 @@ export class CreateTeamRequestDto {
   @IsNotEmpty()
   description: string;
 
-  // 팀 로고 (URL 형식)
-  @IsOptional()
-  @IsUrl()
-  team_logo?: string;
 }

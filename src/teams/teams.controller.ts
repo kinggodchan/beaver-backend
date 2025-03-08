@@ -51,10 +51,16 @@ export class TeamsController {
     return new ApiResponseDto(true, HttpStatus.OK, 'Team list retrive Successfully', teamsResponseDto);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.teamsService.findOne(+id);
-  // }
+  // READ - by id
+  @Get('/:id/detail')
+  async getTeamDetailById(@Param('id') id: number): Promise<ApiResponseDto<TeamResponseDto>> {
+    this.logger.verbose(`Try to Retrieving a team by id: ${id}`);
+
+    const teamResponseDto = new TeamResponseDto(await this.teamsService.getTeamDetailById(id));
+
+    this.logger.verbose(`Retrieving a team by id${id} details Successfully`);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team retrive Successfully', teamResponseDto);
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateTeamDto: UpdateTeamDto) {
