@@ -1,4 +1,5 @@
 import { Module, ValidationPipe } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config'; // ✅ 환경 변수 모듈 추가
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
 import { AuthModule } from './auth/auth.module';
@@ -11,32 +12,36 @@ import { TeamsModule } from './teams/teams.module';
 import { BoardModule } from './board/board.module';
 import { CommentModule } from './comment/comment.module';
 import { ReportModule } from './report/report.module';
+import { InquiryModule } from './inquiry/inquiry.module';
+import { TeamScheduleModule } from './team-schedule/team-schedule.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
+    ConfigModule.forRoot({ isGlobal: true }), // .env 파일을 사용할 수 있도록 설정
+    TypeOrmModule.forRoot(typeOrmConfig), //기존 TypeORM 설정 유지
     ArticlesModule,
     AuthModule,
     UsersModule,
     TeamsModule,
     BoardModule,
     CommentModule,
-    ReportModule
+    ReportModule,
+    InquiryModule,
+    TeamScheduleModule, // InquiryModule 추가 (문의하기 기능 활성화)
   ],
   providers: [
     {
       provide: APP_FILTER,
       useClass: UnauthorizedExceptionFilter,
     },
-
     {
       provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor
+      useClass: LoggingInterceptor,
     },
     {
       provide: APP_PIPE,
       useClass: ValidationPipe,
-    }
-  ]
+    },
+  ],
 })
 export class AppModule {}
