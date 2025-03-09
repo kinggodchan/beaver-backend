@@ -1,34 +1,115 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  Logger,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { CreateTeamRequestDto } from './dto/create-team-request.dto';
-import { UpdateTeamDto } from './dto/update-team.dto';
+import { TeamResponseDto } from './dto/team-response.dto';
+import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { Team } from './entities/team.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
+import { multerOptionsFactory } from 'src/configs/multer.options';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/teams')
 export class TeamsController {
-  constructor(private readonly teamsService: TeamsService) {}
+  private readonly logger = new Logger(TeamsController.name);
 
-  @Post()
-  create(@Body() createTeamRequestDto: CreateTeamRequestDto) {
-    return this.teamsService.createTeam(createTeamRequestDto);
+  constructor(
+    private readonly teamsService: TeamsService,
+    //private readonly configService: ConfigService,
+  ) {}
+
+  // CREATE TEAM
+  @Post('/')
+  //@UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
+  async createTeam(
+    @Body() createTeamRequestDto: CreateTeamRequestDto,
+    @UploadedFile() image : Express.Multer.File
+  ): Promise<ApiResponseDto<void>> {
+    this.logger.verbose(`Try to creating a new Team`);
+    this.logger.verbose(`Received data: ${JSON.stringify(createTeamRequestDto)}`);
+    if (!createTeamRequestDto) {
+      this.logger.error('Request body is missing or invalid');
+      throw new Error('Invalid request body');
+    }
+    await this.teamsService.createTeam(createTeamRequestDto, image);
+
+    this.logger.verbose(`Team title with created Successfully`);
+    return new ApiResponseDto(
+      true,
+      HttpStatus.CREATED,
+      'Team created Successfully',
+    );
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.teamsService.findAll();
+  // @Post('/')
+  // @UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
+  // async createTeam(
+  //   @Body() createTeamRequestDto: CreateTeamRequestDto,
+  //   @UploadedFile() image?: Express.Multer.File,
+  // ): Promise<ApiResponseDto<void>> {
+  //   console.log(`✅ Received image: ${image?.originalname}`);
+
+  //   await this.teamsService.createTeam(createTeamRequestDto, image);
+
+  //   return new ApiResponseDto(
+  //     true,
+  //     201,
+  //     'Team created successfully',
+  //   );
   // }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.teamsService.findOne(+id);
-  // }
+  @Get('/')
+  async getAllTeams(): Promise<ApiResponseDto<TeamResponseDto[]>> {
+    this.logger.verbose(`Try to Retrieving all Teams`);
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateTeamDto: UpdateTeamDto) {
-  //   return this.teamsService.update(+id, updateTeamDto);
-  // }
+    const teams: Team[] = await this.teamsService.getAllTeams();
+    const teamsResponseDto = teams.map((team) => new TeamResponseDto(team));
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.teamsService.remove(+id);
-  // }
+    this.logger.verbose(`Retrieved all Articles successfully`);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team list retrive Successfully', teamsResponseDto);
+  }
+
+  // READ - by id
+  @Get('/:id/detail')
+  async getTeamDetailById(@Param('id') id: number): Promise<ApiResponseDto<TeamResponseDto>> {
+    this.logger.verbose(`Try to Retrieving a team by id: ${id}`);
+
+    const teamResponseDto = new TeamResponseDto(await this.teamsService.getTeamDetailById(id));
+
+    this.logger.verbose(`Retrieving a team by id${id} details Successfully`);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team retrive Successfully', teamResponseDto);
+  }
+
+  // UPDATE TEAM
+  @Patch('/:id')
+  async updateTeam(@Param('id') id: number, @Body() updateTeamDto: UpdateTeamRequestDto): Promise<ApiResponseDto<void>> {
+    await this.teamsService.updateTeam(id, updateTeamDto);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
+  }
+
+  // DELETE TEAM
+  @Delete('/:id')
+  async removeTeam(@Param('id') id: number): Promise<ApiResponseDto<void>> {
+    await this.teamsService.removeTeam(id);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team deleted successfully');
+  }
+
+  // SEARCH TEAMS BY NAME
+  @Get('/search/:name')
+  async searchTeamsByName(@Param('name') name: string): Promise<ApiResponseDto<Team[]>> {
+    const teams = await this.teamsService.searchTeamsByName(name);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Teams retrieved successfully', teams);
+  }
 }

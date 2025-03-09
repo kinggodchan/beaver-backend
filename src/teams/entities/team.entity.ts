@@ -32,6 +32,15 @@ export class Team {
   @UpdateDateColumn()
   modified_at: Date;
 
+  // 팀 소개글
+  @Column({ type: 'text'})
+  description: string;
+
+  // 팀 로고 이미지 URL
+  @Column({ nullable: true })
+  team_logo: string;
+
+
   // 팀원들과의 다대다 관계 설정
   @ManyToMany(() => User, (user) => user.teams, { eager: true })
   @JoinTable()  // 다대다 관계를 위한 조인 테이블 설정
@@ -46,6 +55,7 @@ export class Team {
   teamMemberJoins: TeamMemberJoin[];
 
   // 추가된 부분: 팀 신고 관계
+
   @OneToMany(() => Report, (report) => report.reporterTeam, { cascade: true })
   reportsMade: Report[]; // 이 팀이 신고한 신고 목록
 
