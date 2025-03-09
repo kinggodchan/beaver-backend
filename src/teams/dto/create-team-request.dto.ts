@@ -10,8 +10,8 @@ export class CreateTeamRequestDto {
   location: string;
 
   // 팀 소개글
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   description: string;
 
 }

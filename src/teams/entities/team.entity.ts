@@ -28,10 +28,10 @@ export class Team {
 
   // 팀 소개글
   @Column({ type: 'text'})
-  description: string;  
+  description: string;
 
   // 팀 로고 이미지 URL
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ nullable: true })
   team_logo: string;
 
   @OneToMany(() => TeamMemberJoin, (teamMemberJoin) => teamMemberJoin.team)
