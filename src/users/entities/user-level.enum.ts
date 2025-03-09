@@ -1,5 +1,0 @@
-export enum UserLevel {
-    BEGINNER = 'BEGINNER',
-	INTERMEDIATE = 'INTERMEDIATE',
-	ADVACED = 'ADVACED'
-}

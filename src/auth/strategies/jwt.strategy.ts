@@ -4,27 +4,29 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { User } from '../../users/entities/user.entity'; // User 엔터티 경로에 맞게 변경
 import * as dotenv from 'dotenv';
 import { UsersService } from 'src/users/users.service';
+import { ConfigService } from '@nestjs/config';
 
 dotenv.config();
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(private usersService: UsersService) {
-         // [3] Cookie에 있는 JWT 토큰을 추출
-        super({
-            secretOrKey: process.env.JWT_SECRET|| 'default-secret-key', // Secret Key 설정
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), //Authorization 헤더에서 JWT 추출
-        })
-    } // [4] Secret Key로 검증 - 인스턴스 생성 자체가 Secret Key로 JWT 토큰 검증과정
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService, //ConfigService 주입
+  ) {
+    super({
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'default-secret-key', // ✅ 환경 변수에서 JWT_SECRET 가져오기
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Authorization 헤더에서 JWT 추출
+    });
+  }
 
-    // [5] JWT에서 사용자 정보 가져오기(인증)
-    async validate(payload) {
-        const { email } = payload;
+  async validate(payload: any) {
+    const { email } = payload;
+    const user: User = await this.usersService.findUserByEmail(email);
 
-        const user: User = await this.usersService.findUserByEmail( email);
-
-        if (!user) {
-            throw new UnauthorizedException();
-        }
-        return user;
+    if (!user) {
+      throw new UnauthorizedException('인증 실패: 사용자를 찾을 수 없습니다.');
     }
+
+    return user;
+  }
 }

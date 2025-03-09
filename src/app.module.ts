@@ -12,12 +12,13 @@ import { TeamsModule } from './teams/teams.module';
 import { BoardModule } from './board/board.module';
 import { CommentModule } from './comment/comment.module';
 import { ReportModule } from './report/report.module';
-import { InquiryModule } from './inquiry/inquiry.module'; // ✅ 문의하기 모듈 추가
+import { InquiryModule } from './inquiry/inquiry.module';
+import { TeamScheduleModule } from './team-schedule/team-schedule.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), // ✅ .env 파일을 사용할 수 있도록 설정
-    TypeOrmModule.forRoot(typeOrmConfig), // ✅ 기존 TypeORM 설정 유지
+    ConfigModule.forRoot({ isGlobal: true }), // .env 파일을 사용할 수 있도록 설정
+    TypeOrmModule.forRoot(typeOrmConfig), //기존 TypeORM 설정 유지
     ArticlesModule,
     AuthModule,
     UsersModule,
@@ -25,7 +26,8 @@ import { InquiryModule } from './inquiry/inquiry.module'; // ✅ 문의하기 �
     BoardModule,
     CommentModule,
     ReportModule,
-    InquiryModule, // ✅ InquiryModule 추가 (문의하기 기능 활성화)
+    InquiryModule,
+    TeamScheduleModule, // InquiryModule 추가 (문의하기 기능 활성화)
   ],
   providers: [
     {
