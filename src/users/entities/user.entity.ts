@@ -28,7 +28,7 @@ export class User {
   @Column()
   role: UserRole;
 
-  @ManyToMany(() => Team, (team) => team.members, { eager: true })
+  @ManyToMany(() => Team, (team) => team.members)
   teams: Team[];  // 유저가 여러 팀에 속할 수 있음
 
   @OneToMany(() => Article, (article) => article.author, { eager: false })

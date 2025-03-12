@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-import * as multer from 'multer';
 
 dotenv.config();
 
@@ -10,9 +9,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 파일 업로드를 위한 multer 설정
-  app.use(
-    multer({ dest: './uploads' }).single('image'),  // 'image'는 form-data의 키
-  );
+  // app.use(
+  //   multer({ dest: './uploads' }).single('image'),  // 'image'는 form-data의 키
+  // );
 
   app.enableCors({
     origin:'http://localhost:4200',
