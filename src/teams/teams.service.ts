@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Team } from './entities/team.entity';
 import { Like, Repository } from 'typeorm';
 import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class TeamsService {
@@ -16,6 +17,7 @@ export class TeamsService {
 
   // CREATE TEAM
   async createTeam(
+    logginedUser: User,
     createTeamRequestDto: CreateTeamRequestDto,
     image: Express.Multer.File
   ): Promise<void> {
@@ -37,6 +39,7 @@ export class TeamsService {
       location,
       description,
       team_logo: logoUrl,
+      captain: logginedUser,
     });
 
     await this.teamsRepository.save(newTeam);

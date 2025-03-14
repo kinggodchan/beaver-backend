@@ -10,6 +10,7 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { CreateTeamRequestDto } from './dto/create-team-request.dto';
@@ -20,8 +21,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
 import { multerOptionsFactory } from 'src/configs/multer.options';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/custom-guards-decorators/custom-role.guard';
+import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
+import { UserRole } from 'src/users/entities/user-role.enum';
+import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('api/teams')
+@UseGuards(AuthGuard(), RolesGuard)
 export class TeamsController {
   private readonly logger = new Logger(TeamsController.name);
 
@@ -32,16 +40,18 @@ export class TeamsController {
   // CREATE TEAM
   @Post('/')
   @UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
+  @Roles(UserRole.USER)
   async createTeam(
+    @GetUser() logginedUser: User, 
     @Body() createTeamRequestDto: CreateTeamRequestDto,
-    @UploadedFile() image : Express.Multer.File
+    @UploadedFile() image : Express.Multer.File, 
   ): Promise<ApiResponseDto<void>> {
     this.logger.verbose(`Received data: ${JSON.stringify(createTeamRequestDto)}`);
     if (!createTeamRequestDto) {
       this.logger.error('Request body is missing or invalid');
       throw new Error('Invalid request body');
     }
-    await this.teamsService.createTeam(createTeamRequestDto, image);
+    await this.teamsService.createTeam(logginedUser, createTeamRequestDto, image);
 
     this.logger.verbose(`Team title with created Successfully`);
     return new ApiResponseDto(
