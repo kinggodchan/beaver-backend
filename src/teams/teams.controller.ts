@@ -29,7 +29,6 @@ import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 
 @Controller('api/teams')
-@UseGuards(AuthGuard(), RolesGuard)
 export class TeamsController {
   private readonly logger = new Logger(TeamsController.name);
 
@@ -40,6 +39,7 @@ export class TeamsController {
   // CREATE TEAM
   @Post('/')
   @UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
+  @UseGuards(AuthGuard(), RolesGuard)
   @Roles(UserRole.USER)
   async createTeam(
     @GetUser() logginedUser: User, 

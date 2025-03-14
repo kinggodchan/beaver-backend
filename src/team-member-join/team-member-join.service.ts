@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -47,4 +48,32 @@ export class TeamMemberJoinService {
 
     await this.teamMemberJoinRepository.save(joinRequest);
   }
+
+  // 팀장이 참가 신청을 승인 / 거절
+  async updateJoinStatus(
+    teamId: number,
+    joinId: number,
+    userId: number,
+    status: JoinStatus
+  ): Promise<void> {
+    const team = await this.teamRepository.findOne({
+      where: { team_id: teamId }
+    });
+  
+    if (!team) throw new NotFoundException('팀을 찾을 수 없습니다.');
+  
+    if (team.captain.user_id !== userId) {
+      throw new ForbiddenException('팀장만 승인/거절할 수 있습니다.');
+    }
+  
+    const joinRequest = await this.teamMemberJoinRepository.findOne({
+      where: { join_id: joinId },
+    });
+  
+    if (!joinRequest) throw new NotFoundException('참가 신청을 찾을 수 없습니다.');
+  
+    joinRequest.status = status;
+    await this.teamMemberJoinRepository.save(joinRequest);
+  }
+  
 }

@@ -8,7 +8,7 @@ import { Team } from 'src/teams/entities/team.entity';
 @Entity()
 export class TeamMemberJoin {
   @PrimaryGeneratedColumn()
-  participation_id: number;
+  join_id: number;
 
   @ManyToOne(() => Team, (team) => team.members, { onDelete: 'CASCADE' })
   team: Team;
