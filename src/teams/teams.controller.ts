@@ -27,17 +27,15 @@ export class TeamsController {
 
   constructor(
     private readonly teamsService: TeamsService,
-    //private readonly configService: ConfigService,
   ) {}
 
   // CREATE TEAM
   @Post('/')
-  //@UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
+  @UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
   async createTeam(
     @Body() createTeamRequestDto: CreateTeamRequestDto,
     @UploadedFile() image : Express.Multer.File
   ): Promise<ApiResponseDto<void>> {
-    this.logger.verbose(`Try to creating a new Team`);
     this.logger.verbose(`Received data: ${JSON.stringify(createTeamRequestDto)}`);
     if (!createTeamRequestDto) {
       this.logger.error('Request body is missing or invalid');
@@ -53,23 +51,7 @@ export class TeamsController {
     );
   }
 
-  // @Post('/')
-  // @UseInterceptors(FileInterceptor('image', multerOptionsFactory(new ConfigService())))
-  // async createTeam(
-  //   @Body() createTeamRequestDto: CreateTeamRequestDto,
-  //   @UploadedFile() image?: Express.Multer.File,
-  // ): Promise<ApiResponseDto<void>> {
-  //   console.log(`✅ Received image: ${image?.originalname}`);
-
-  //   await this.teamsService.createTeam(createTeamRequestDto, image);
-
-  //   return new ApiResponseDto(
-  //     true,
-  //     201,
-  //     'Team created successfully',
-  //   );
-  // }
-
+  // READ all team
   @Get('/')
   async getAllTeams(): Promise<ApiResponseDto<TeamResponseDto[]>> {
     this.logger.verbose(`Try to Retrieving all Teams`);
