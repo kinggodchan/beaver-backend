@@ -19,7 +19,7 @@ export class AuthService {
     async signUp(createUserRequestDto: CreateUserRequestDto): Promise<void> {
         this.logger.verbose(`Visitor is creating a new account with title: ${createUserRequestDto.email}`);
 
-        const { username, password, email, role } = createUserRequestDto;
+        const { username, password, email, role, phone_number } = createUserRequestDto;
         if (!username || !password || !email || !role) {
             throw new BadRequestException('Something went wrong.');
         }
@@ -34,6 +34,7 @@ export class AuthService {
             password: hashedPassword,
             email,
             role,
+            phone_number,
         });
 
         

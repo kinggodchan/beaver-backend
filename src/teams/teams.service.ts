@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Team } from './entities/team.entity';
 import { Like, Repository } from 'typeorm';
 import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class TeamsService {
@@ -16,6 +17,7 @@ export class TeamsService {
 
   // CREATE TEAM
   async createTeam(
+    logginedUser: User,
     createTeamRequestDto: CreateTeamRequestDto,
     image: Express.Multer.File
   ): Promise<void> {
@@ -24,7 +26,11 @@ export class TeamsService {
 
     let logoUrl: string | undefined;
     if (image) {
-      logoUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${image.originalname}`;
+      // S3의 key 값(image.key)을 사용하여 정확한 URL 생성
+      const s3Bucket = process.env.AWS_S3_BUCKET as string;
+      const s3Region = process.env.AWS_REGION as string;
+      
+      logoUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
       this.logger.debug(`✅ S3 File URL: ${logoUrl}`);
     }
 
@@ -33,31 +39,11 @@ export class TeamsService {
       location,
       description,
       team_logo: logoUrl,
+      captain: logginedUser,
     });
 
     await this.teamsRepository.save(newTeam);
   }
-  // async createTeam(
-  //   createTeamRequestDto: CreateTeamRequestDto,
-  //   image?: Express.Multer.File,
-  // ): Promise<void> {
-  //   const { team_name, location, description } = createTeamRequestDto;
-
-  //   let logoUrl: string | undefined;
-  //   if (image) {
-  //     logoUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${image.originalname}`;
-  //     this.logger.debug(`✅ S3 File URL: ${logoUrl}`);
-  //   }
-
-  //   const newTeam = this.teamsRepository.create({
-  //     team_name,
-  //     location,
-  //     description,
-  //     team_logo: logoUrl,
-  //   });
-
-  //   await this.teamsRepository.save(newTeam);
-  // }
 
   // READ ALL TEAMS
   async getAllTeams(): Promise<Team[]> {
