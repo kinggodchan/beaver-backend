@@ -48,6 +48,7 @@ export class TeamMemberJoinService {
     }
     return foundUser;
   }
+
   // 참가 신청
   async requestJoinTeam(teamId: number, userId: number): Promise<void> {
     const team = await this.getTeamById(teamId);
@@ -70,7 +71,7 @@ export class TeamMemberJoinService {
     await this.teamMemberJoinRepository.save(joinRequest);
   }
 
-  // 팀장이 참가 신청을 승인 / 거절
+  // 팀장이 참가 신청을 승인 / 거절(추방)
   async updateJoinStatus(
     teamId: number,
     joinId: number,
@@ -101,6 +102,8 @@ export class TeamMemberJoinService {
       team.members.push(joinRequest);
       await this.teamRepository.save(team);
     }
+    
+    await this.updateTeamMemberCount(teamId); // 멤버 수 업데이트
   }
 
   // 참가 신청 목록 조회 (팀장이 확인하는 부분)
@@ -140,5 +143,21 @@ export class TeamMemberJoinService {
       .getMany();
 
     return joinRequests;
+  }
+
+  // 팀 멤버 수 업데이트
+  async updateTeamMemberCount(teamId: number): Promise<void> {
+    const approvedMembersCount = await this.teamMemberJoinRepository
+      .createQueryBuilder('join')
+      .leftJoin('join.user', 'user')
+      .where('join.teamTeamId = :teamId', { teamId })
+      .andWhere('join.status = :status', { status: JoinStatus.APPROVED })
+      .getCount();
+
+    const team = await this.getTeamById(teamId);
+    if (team) {
+      team.member_count = approvedMembersCount + 1; // 팀 멤버와 주장
+      await this.teamRepository.save(team);
+    }
   }
 }
