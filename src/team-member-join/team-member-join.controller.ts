@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseEnumPipe,
   ParseIntPipe,
@@ -49,5 +50,15 @@ export class TeamMemberJoinController {
       logginedUser.user_id,
       status,
     );
+  }
+
+  // 팀장이 자기 팀의 참가 신청 목록을 조회
+  @Get(':teamId/join')
+  @Roles(UserRole.USER)
+  async getJoinRequests(
+    @Param('teamId', ParseIntPipe) teamId: number,
+    @GetUser() logginedUser: User,
+  ) {
+    return this.teamMemberJoinService.getJoinRequests(teamId, logginedUser);
   }
 }
