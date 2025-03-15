@@ -25,7 +25,7 @@ export class TeamMemberJoinService {
   ) {}
 
   // 팀 정보 조회
-  async getTeamDetailById(id: number): Promise<Team> {
+  async getTeamById(id: number): Promise<Team> {
     const foundTeam = await this.teamRepository
       .createQueryBuilder('team')
       .where('team.team_id = :id', { id })
@@ -37,18 +37,26 @@ export class TeamMemberJoinService {
     return foundTeam;
   }
 
+  async getUserById(id: number): Promise<User> {
+    const foundUser = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.user_id = :id', { id })
+      .getOne();
+
+    if (!foundUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return foundUser;
+  }
   // 참가 신청
   async requestJoinTeam(teamId: number, userId: number): Promise<void> {
-    const team = await this.teamRepository.findOneBy({ team_id: teamId });
-    if (!team) throw new NotFoundException('팀을 찾을 수 없습니다.');
+    const team = await this.getTeamById(teamId);
 
-    const user = await this.userRepository.findOneBy({ user_id: userId });
-    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    const user = await this.getUserById(userId);
 
     const existingRequest = await this.teamMemberJoinRepository.findOne({
       where: { team, user },
     });
-
     if (existingRequest) {
       throw new ConflictException('이미 참가 신청을 했습니다.');
     }
@@ -90,7 +98,7 @@ export class TeamMemberJoinService {
     await this.teamMemberJoinRepository.save(joinRequest);
 
     if (status === JoinStatus.APPROVED) {
-      team.members.push(joinRequest.user);
+      team.members.push(joinRequest);
       await this.teamRepository.save(team);
     }
   }
@@ -100,20 +108,37 @@ export class TeamMemberJoinService {
     teamId: number,
     logginedUser: User,
   ): Promise<TeamMemberJoin[]> {
-    // 팀장 권한 확인
-    const team = await this.getTeamDetailById(teamId);
+    const team = await this.teamRepository
+    .createQueryBuilder('team')
+    .where('team.team_id = :teamId', { teamId })
+    .leftJoinAndSelect('team.captain', 'captain')
+    .getOne();
+    
     if (!team) {
-      throw new Error('Team not found');
+      throw new NotFoundException('Team not found');
+    }
+    
+    // 팀장 권한 확인
+    if (team.captain.user_id !== logginedUser.user_id) {
+      throw new ForbiddenException('You are not the team leader');
     }
 
-    // if (team.captain !== logginedUser) {
-    //   throw new Error('You are not the team leader');
-    // }
+    // 팀의 참가 신청 목록 조회
+    const joinRequests = await this.teamMemberJoinRepository
+      .createQueryBuilder('join')
+      .where('join.teamTeamId = :teamId', { teamId })
+      .leftJoinAndSelect('join.user', 'user') // 참가 신청자 정보도 함께 가져오기
+      .select([
+        'join.join_id',
+        'join.status',
+        'join.created_at',
+        'user.user_id',
+        'user.username',
+        'user.email',
+      ])
+      .orderBy('join.created_at', 'DESC')
+      .getMany();
 
-    // 팀의 참가 신청 목록 반환
-    return await this.teamMemberJoinRepository.find({
-      where: { team },
-      relations: ['user'], // 참가 신청자 정보도 함께 가져오도록 설정
-    });
+    return joinRequests;
   }
 }

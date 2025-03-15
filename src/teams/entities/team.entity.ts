@@ -41,22 +41,15 @@ export class Team {
   @Column({ nullable: true })
   team_logo: string;
 
-
-  // 팀원들과의 다대다 관계 설정
-  @ManyToMany(() => User, (user) => user.teams, { eager: true })
-  @JoinTable()  // 다대다 관계를 위한 조인 테이블 설정
-  members: User[];
-
   // 한 팀이 여러 경기 일정 get
   @OneToMany(() => TeamSchedule, (schedule) => schedule.team, { cascade: true })
   schedules: TeamSchedule[];
 
-  // 팀원 조인 테이블 설정 (TeamMemberJoin 엔티티 사용)
+  // team.entity.ts
   @OneToMany(() => TeamMemberJoin, (teamMemberJoin) => teamMemberJoin.team)
-  teamMemberJoins: TeamMemberJoin[];
+  members: TeamMemberJoin[];
 
   // 추가된 부분: 팀 신고 관계
-
   @OneToMany(() => Report, (report) => report.reporterTeam, { cascade: true })
   reportsMade: Report[]; // 이 팀이 신고한 신고 목록
 
