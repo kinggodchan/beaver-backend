@@ -19,31 +19,47 @@ export class BoardService {
     @InjectRepository(TradePost) private tradePostRepo: Repository<TradePost>,
   ) {}
 
+  /** 📌 모든 게시판 조회 */
+  async getAllBoards(): Promise<Board[]> {
+    return this.boardRepo.find();
+  }
+
+  /** 📌 특정 게시판 조회 */
+  async getBoard(id: number): Promise<Board> {
+    const board = await this.boardRepo.findOne({ where: { board_id: id } });
+    if (!board) throw new NotFoundException(`Board with ID ${id} not found`);
+    return board;
+  }
+
   /** 📌 게시판 생성 */
   async createBoard(dto: CreateBoardDto): Promise<Board> {
     const board = this.boardRepo.create(dto);
     return this.boardRepo.save(board);
   }
 
-  /** 📌 게시판 수정 (예외 처리 추가) */
+  /** 📌 게시판 수정 */
   async updateBoard(id: number, dto: UpdateBoardDto): Promise<Board> {
-    const board = await this.boardRepo.findOne({ where: { board_id: id } });
-  
-    if (!board) {
-      throw new NotFoundException(`Board with ID ${id} not found`);
-    }
-  
-    Object.assign(board, dto); // 기존 값 덮어쓰기
+    const board = await this.getBoard(id);
+    Object.assign(board, dto);
     return this.boardRepo.save(board);
   }
-  
 
-  /** 📌 게시판 삭제 (예외 처리 추가) */
+  /** 📌 게시판 삭제 */
   async deleteBoard(id: number): Promise<void> {
     const result = await this.boardRepo.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Board with ID ${id} not found`);
-    }
+    if (result.affected === 0) throw new NotFoundException(`Board with ID ${id} not found`);
+  }
+
+  /** 📌 모든 일반 게시글 조회 */
+  async getAllPosts(): Promise<Post[]> {
+    return this.postRepo.find({ relations: ['board'] });
+  }
+
+  /** 📌 특정 일반 게시글 조회 */
+  async getPost(id: number): Promise<Post> {
+    const post = await this.postRepo.findOne({ where: { post_id: id }, relations: ['board'] });
+    if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
+    return post;
   }
 
   /** 📌 일반 게시글 생성 */
@@ -52,32 +68,35 @@ export class BoardService {
     return this.postRepo.save(post);
   }
 
-  /** 📌 일반 게시글 수정 (예외 처리 추가) */
+  /** 📌 일반 게시글 수정 */
   async updatePost(id: number, dto: UpdatePostDto): Promise<Post> {
-    const post = await this.postRepo.findOne({ where: { post_id: id }, relations: ['board'] });
-  
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
-    }
-  
+    const post = await this.getPost(id);
+
     if (dto.board_id) {
-      const board = await this.boardRepo.findOne({ where: { board_id: dto.board_id } });
-      if (!board) {
-        throw new NotFoundException(`Board with ID ${dto.board_id} not found`);
-      }
+      const board = await this.getBoard(dto.board_id);
       post.board = board;
     }
-  
+
     Object.assign(post, dto);
     return this.postRepo.save(post);
   }
 
-  /** 📌 일반 게시글 삭제 (예외 처리 추가) */
+  /** 📌 일반 게시글 삭제 */
   async deletePost(id: number): Promise<void> {
     const result = await this.postRepo.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
-    }
+    if (result.affected === 0) throw new NotFoundException(`Post with ID ${id} not found`);
+  }
+
+  /** 📌 모든 거래 게시글 조회 */
+  async getAllTradePosts(): Promise<TradePost[]> {
+    return this.tradePostRepo.find({ relations: ['board'] });
+  }
+
+  /** 📌 특정 거래 게시글 조회 */
+  async getTradePost(id: number): Promise<TradePost> {
+    const tradePost = await this.tradePostRepo.findOne({ where: { trade_post_id: id }, relations: ['board'] });
+    if (!tradePost) throw new NotFoundException(`TradePost with ID ${id} not found`);
+    return tradePost;
   }
 
   /** 📌 거래 게시글 생성 */
@@ -86,32 +105,22 @@ export class BoardService {
     return this.tradePostRepo.save(tradePost);
   }
 
-  /** 📌 거래 게시글 수정 (예외 처리 추가) */
+  /** 📌 거래 게시글 수정 */
   async updateTradePost(id: number, dto: UpdateTradePostDto): Promise<TradePost> {
-    const tradePost = await this.tradePostRepo.findOne({ where: { trade_post_id: id }, relations: ['board'] });
-  
-    if (!tradePost) {
-      throw new NotFoundException(`TradePost with ID ${id} not found`);
-    }
-  
+    const tradePost = await this.getTradePost(id);
+
     if (dto.board_id) {
-      const board = await this.boardRepo.findOne({ where: { board_id: dto.board_id } });
-      if (!board) {
-        throw new NotFoundException(`Board with ID ${dto.board_id} not found`);
-      }
+      const board = await this.getBoard(dto.board_id);
       tradePost.board = board;
     }
-  
+
     Object.assign(tradePost, dto);
     return this.tradePostRepo.save(tradePost);
   }
-  
 
-  /** 📌 거래 게시글 삭제 (예외 처리 추가) */
+  /** 📌 거래 게시글 삭제 */
   async deleteTradePost(id: number): Promise<void> {
     const result = await this.tradePostRepo.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`TradePost with ID ${id} not found`);
-    }
+    if (result.affected === 0) throw new NotFoundException(`TradePost with ID ${id} not found`);
   }
 }

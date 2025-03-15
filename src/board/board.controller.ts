@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -16,6 +16,16 @@ export class BoardController {
     return this.boardService.createBoard(dto);
   }
 
+  @Get()
+  getAllBoards() {
+    return this.boardService.getAllBoards();
+  }
+
+  @Get(':id')
+  getBoard(@Param('id') id: number) {
+    return this.boardService.getBoard(id);
+  }
+
   @Patch(':id')
   updateBoard(@Param('id') id: number, @Body() dto: UpdateBoardDto) {
     return this.boardService.updateBoard(id, dto);
@@ -31,6 +41,16 @@ export class BoardController {
     return this.boardService.createPost(dto);
   }
 
+  @Get('posts')
+  getAllPosts() {
+    return this.boardService.getAllPosts();
+  }
+
+  @Get('posts/:id')
+  getPost(@Param('id') id: number) {
+    return this.boardService.getPost(id);
+  }
+
   @Patch('posts/:id')
   updatePost(@Param('id') id: number, @Body() dto: UpdatePostDto) {
     return this.boardService.updatePost(id, dto);
@@ -44,6 +64,16 @@ export class BoardController {
   @Post('trade-posts')
   createTradePost(@Body() dto: CreateTradePostDto) {
     return this.boardService.createTradePost(dto);
+  }
+
+  @Get('trade-posts')
+  getAllTradePosts() {
+    return this.boardService.getAllTradePosts();
+  }
+
+  @Get('trade-posts/:id')
+  getTradePost(@Param('id') id: number) {
+    return this.boardService.getTradePost(id);
   }
 
   @Patch('trade-posts/:id')
