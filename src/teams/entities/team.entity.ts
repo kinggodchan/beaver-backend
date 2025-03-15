@@ -1,8 +1,9 @@
 import { User } from 'src/users/entities/user.entity';  // 유저 엔티티 추가
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, CreateDateColumn, UpdateDateColumn, JoinTable, OneToMany, OneToOne, JoinColumn } from 'typeorm';
-import { TeamMemberJoin } from './team-member-join.entity';
+
 import { Report } from 'src/report/entities/report.entity';
 import { TeamSchedule } from 'src/team-schedule/entities/team-schedule.entity';
+import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
 
 @Entity()
 export class Team {

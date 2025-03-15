@@ -9,6 +9,10 @@ export class UserController {
   
   constructor(private readonly userService: UsersService) {}
 
+  @Post()
+  async createUser(@Body() createUserRequestDto: CreateUserRequestDto): Promise<void> {
+    return this.userService.createUser(createUserRequestDto);
+  }
 
     //조회, 수정, 삭제(접근 권한이 필요하다. ==> ADMIN, 또는 본인)
 }
