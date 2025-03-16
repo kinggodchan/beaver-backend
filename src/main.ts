@@ -26,10 +26,10 @@ async function bootstrap() {
 
   // CORS 설정
   app.enableCors({
-    origin: 'http://localhost:4200', // React 앱의 주소
+    origin: 'http://localhost:3001', // React 앱의 주소
     credentials: true,
     exposedHeaders: ['Authorization'],
-  });
+});
 
   const port = process.env.PORT ?? 3000; // 기본값 설정
   await app.listen(port);

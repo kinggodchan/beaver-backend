@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Get, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -13,15 +13,21 @@ export class CommentController {
     return this.commentService.createComment(createCommentDto);
   }
 
+  /** 📌 특정 게시글(post_id)의 댓글 조회 */
+  @Get()
+  getComments(@Query('post_id') postId: string) {
+    return this.commentService.getCommentsByPostId(parseInt(postId, 10));
+  }
+
   /** 📌 댓글 수정 */
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentService.updateComment(id, updateCommentDto);
+  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
+    return this.commentService.updateComment(parseInt(id, 10), updateCommentDto);
   }
 
   /** 📌 댓글 삭제 */
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.commentService.deleteComment(id);
+  remove(@Param('id') id: string) {
+    return this.commentService.deleteComment(parseInt(id, 10));
   }
 }

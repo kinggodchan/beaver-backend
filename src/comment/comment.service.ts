@@ -7,7 +7,6 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { Post } from 'src/board/entities/post.entity';
 import { User } from 'src/users/entities/user.entity';
 
-
 @Injectable()
 export class CommentService {
   constructor(
@@ -28,6 +27,20 @@ export class CommentService {
     return this.commentRepo.save(comment);
   }
 
+  /** 📌 특정 게시글(post_id)의 댓글 조회 */
+  async getCommentsByPostId(postId: number): Promise<Comment[]> {
+    const comments = await this.commentRepo.find({
+      where: { post: { post_id: postId } },
+      relations: ['author', 'post'],
+    });
+
+    if (!comments.length) {
+      throw new NotFoundException(`게시글 ID ${postId}에 대한 댓글이 없습니다.`);
+    }
+
+    return comments;
+  }
+
   /** 📌 댓글 수정 */
   async updateComment(id: number, dto: UpdateCommentDto): Promise<Comment> {
     const comment = await this.commentRepo.preload({ comment_id: id, ...dto });
@@ -37,11 +50,14 @@ export class CommentService {
     return this.commentRepo.save(comment);
   }
 
-  /** 📌 댓글 삭제 */
-  async deleteComment(id: number): Promise<void> {
-    const result = await this.commentRepo.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Comment with ID ${id} not found`);
-    }
+/** 📌 댓글 삭제 */
+async deleteComment(id: number): Promise<string> {
+  const result = await this.commentRepo.delete(id);
+  if (result.affected === 0) {
+    throw new NotFoundException(`Comment with ID ${id} not found`);
   }
+
+  return '댓글이 삭제되었습니다.';  // 성공 메시지 반환
+}
+
 }
