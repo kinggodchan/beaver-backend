@@ -37,6 +37,10 @@ export class UsersService {
         return existingUser;
     }
 
+    async findAll(): Promise<User[]> {
+        return this.usersRepository.find(); // 모든 사용자 반환
+    }
+
     // Existing Checker
         async checkEmailExist(email: string): Promise<void> {
             const existingUser = await this.usersRepository.findOne({ where: { email } });
