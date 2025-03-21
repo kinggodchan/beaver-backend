@@ -12,11 +12,8 @@ export class Board {
   @PrimaryGeneratedColumn()
   board_id: number;
 
-  @Column({ length: 255 })
-  boardName: string;
-
-  @Column({ type: 'enum', enum: BoardType })
-  type: BoardType;
+  @Column({ name: 'board_name', type: 'enum', enum: BoardType })
+  board_name: BoardType;
 
   @OneToMany(() => Post, (post) => post.board, { cascade: true })
   posts: Post[];

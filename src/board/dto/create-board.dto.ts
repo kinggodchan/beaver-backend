@@ -4,7 +4,7 @@ import { BoardType } from '../entities/board.entity';
 export class CreateBoardDto {
   @IsString()
   @IsNotEmpty()
-  boardName: string;
+  board_name: BoardType;
 
   @IsEnum(BoardType)
   @IsNotEmpty()
