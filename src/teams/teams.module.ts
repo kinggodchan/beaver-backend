@@ -5,10 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Team } from './entities/team.entity';
 import { PassportModule } from '@nestjs/passport';
+import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Team]),
+    TypeOrmModule.forFeature([Team, TeamMemberJoin]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [TeamsController],

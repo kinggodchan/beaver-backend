@@ -2,9 +2,11 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Team } from './entities/team.entity';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
 import { User } from 'src/users/entities/user.entity';
+import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
+import { JoinStatus } from 'src/team-member-join/entities/join-status.enum';
 
 @Injectable()
 export class TeamsService {
@@ -13,6 +15,8 @@ export class TeamsService {
   constructor(
     @InjectRepository(Team)
     private teamsRepository: Repository<Team>,
+    @InjectRepository(TeamMemberJoin)
+    private teamMemberJoinRepository: Repository<TeamMemberJoin>,
   ) {}
 
   // CREATE TEAM
@@ -23,6 +27,8 @@ export class TeamsService {
   ): Promise<void> {
     this.logger.verbose(`Try to creating a new Team service`);
     const { team_name, location, description } = createTeamRequestDto;
+
+    //
 
     let logoUrl: string | undefined;
     if (image) {
@@ -96,4 +102,24 @@ export class TeamsService {
       where: { team_name: Like(`%${name}%`) },
     });
   }
+
+  async getTeamMembers(teamId: number): Promise<User[]> {
+    const team = await this.teamsRepository.findOne({
+      where: { team_id: teamId },
+    });
+  
+    if (!team) {
+      throw new NotFoundException('팀을 찾을 수 없습니다.');
+    }
+  
+    const approvedMembers = await this.teamMemberJoinRepository
+      .createQueryBuilder('join')
+      .leftJoinAndSelect('join.user', 'user')
+      .where('join.teamTeamId = :teamId', { teamId })
+      .andWhere('join.status = :status', { status: JoinStatus.APPROVED })
+      .getMany();
+  
+    return approvedMembers.map((join) => (join.user));
+  }  
+  
 }

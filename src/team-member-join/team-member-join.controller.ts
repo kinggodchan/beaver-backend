@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   ParseEnumPipe,
   ParseIntPipe,
@@ -17,6 +18,8 @@ import { User } from 'src/users/entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/custom-guards-decorators/custom-role.guard';
 import { JoinStatus } from './entities/join-status.enum';
+import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { TeamMemberJoin } from './entities/team-member-join.entity';
 
 @Controller('api/teams')
 @UseGuards(AuthGuard(), RolesGuard)
@@ -29,11 +32,9 @@ export class TeamMemberJoinController {
   async requestJoinTeam(
     @Param('teamId', ParseIntPipe) teamId: number,
     @GetUser() logginedUser: User, // 현재 로그인한 사용자
-  ) {
-    return this.teamMemberJoinService.requestJoinTeam(
-      teamId,
-      logginedUser.user_id,
-    );
+  ): Promise<ApiResponseDto<void>> {
+    await this.teamMemberJoinService.requestJoinTeam( teamId, logginedUser.user_id );
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
   }
 
   // 팀장이 참가 신청을 승인/ 거절
@@ -43,13 +44,14 @@ export class TeamMemberJoinController {
     @Param('joinId', ParseIntPipe) joinId: number,
     @Body('status', new ParseEnumPipe(JoinStatus)) status: JoinStatus,
     @GetUser() logginedUser: User,
-  ) {
-    return this.teamMemberJoinService.updateJoinStatus(
+  ): Promise<ApiResponseDto<void>>{
+    await this.teamMemberJoinService.updateJoinStatus(
       teamId,
       joinId,
       logginedUser.user_id,
       status,
     );
+    return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
   }
 
   // 팀장이 자기 팀의 참가 신청 목록을 조회
@@ -58,7 +60,8 @@ export class TeamMemberJoinController {
   async getJoinRequests(
     @Param('teamId', ParseIntPipe) teamId: number,
     @GetUser() logginedUser: User,
-  ) {
-    return this.teamMemberJoinService.getJoinRequests(teamId, logginedUser);
+  ): Promise<ApiResponseDto<TeamMemberJoin[]>>{
+    const joins = await this.teamMemberJoinService.getJoinRequests(teamId, logginedUser);
+    return new ApiResponseDto(true, HttpStatus.OK, 'Teams retrieved successfully', joins);
   }
 }
