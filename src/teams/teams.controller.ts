@@ -107,11 +107,17 @@ export class TeamsController {
 
   // UPDATE TEAM
   @Patch('/:id')
+  @UseInterceptors(
+    FileInterceptor('image', multerOptionsFactory(new ConfigService())),
+  )
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.USER)
   async updateTeam(
     @Param('id') id: number,
     @Body() updateTeamDto: UpdateTeamRequestDto,
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponseDto<void>> {
-    await this.teamsService.updateTeam(id, updateTeamDto);
+    await this.teamsService.updateTeam(id, updateTeamDto, image);
     return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
   }
 
