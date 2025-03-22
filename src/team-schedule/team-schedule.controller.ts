@@ -4,7 +4,7 @@ import { CreateTeamScheduleDto } from './dto/create-team-schedule.dto';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt.guard';
 
 
-@Controller('team-schedule')
+@Controller('api/team-schedule')
 export class TeamScheduleController {
   constructor(private readonly scheduleService: TeamScheduleService) {}
 

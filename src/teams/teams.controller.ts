@@ -28,6 +28,7 @@ import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
 import { UserRole } from 'src/users/entities/user-role.enum';
 import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
 
 @Controller('api/teams')
 export class TeamsController {
@@ -132,25 +133,27 @@ export class TeamsController {
   @Get('/search/:name')
   async searchTeamsByName(
     @Param('name') name: string,
-  ): Promise<ApiResponseDto<Team[]>> {
+  ): Promise<ApiResponseDto<TeamResponseDto[]>> {
     const teams = await this.teamsService.searchTeamsByName(name);
+    const teamsResponseDto = teams.map((team) => new TeamResponseDto(team));
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
       'Teams retrieved successfully',
-      teams,
+      teamsResponseDto,
     );
   }
 
   // 팀 멤버 조회
   @Get(':teamId/members')
-  async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<ApiResponseDto<User[]>> {
-    const members = await this.teamsService.getTeamMembers(teamId);
+  async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<ApiResponseDto<UserResponseDto[]>> {
+    const members: User[] = await this.teamsService.getTeamMembers(teamId);
+    const membersResponseDto = members.map((member) => new UserResponseDto(member));
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
       'Teams retrieved successfully',
-      members,
+      membersResponseDto,
     );
   }
 }

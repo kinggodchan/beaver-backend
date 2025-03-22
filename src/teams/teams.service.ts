@@ -64,17 +64,27 @@ export class TeamsService {
   async getTeamDetailById(id: number): Promise<Team> {
     this.logger.verbose(`Retrieving a team by id: ${id}`);
     const foundTeam = await this.teamsRepository
-      .createQueryBuilder('team')
-      .where('team.team_id = :id', { id })
-      .getOne();
-
+    .createQueryBuilder('team')
+    .leftJoinAndSelect('team.captain', 'captain')
+    .where('team.team_id = :id', { id })
+    .getOne();
+    
     if (!foundTeam) {
       throw new NotFoundException(`Team with ID ${id} not found`);
     }
-    this.logger.verbose(`Retrieving a team by id${id} details Successfully`);
+    this.logger.verbose(`Retrieving a team by id${id} details Successfully ${foundTeam}`);
     return foundTeam;
   }
-
+  
+  // SEARCH TEAM by Name
+  async searchTeamsByName(name: string): Promise<Team[]> {
+    this.logger.verbose(`Searching teams by name: ${name}`);
+  
+    return await this.teamsRepository.find({
+      where: { team_name: Like(`%${name}%`) },
+      relations: ['captain'],
+    });
+  }
   // UPDATE TEAM
   async updateTeam(
     id: number,
@@ -122,14 +132,6 @@ export class TeamsService {
     await this.teamsRepository.remove(team);
   }
 
-  // SEARCH TEAM by Name
-  async searchTeamsByName(name: string): Promise<Team[]> {
-    this.logger.verbose(`Searching teams by name: ${name}`);
-
-    return await this.teamsRepository.find({
-      where: { team_name: Like(`%${name}%`) },
-    });
-  }
 
   async getTeamMembers(teamId: number): Promise<User[]> {
     const team = await this.teamsRepository.findOne({

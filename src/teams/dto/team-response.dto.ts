@@ -1,4 +1,5 @@
 import { Team } from '../entities/team.entity';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
 
 export class TeamResponseDto {
   team_id: number;
@@ -7,7 +8,7 @@ export class TeamResponseDto {
   member_count: number;
   team_logo: string;
   description: string;
-  //captain: string;
+  captain: UserResponseDto | null;
 
   constructor(team: Team) {
     this.team_id = team.team_id;
@@ -16,6 +17,6 @@ export class TeamResponseDto {
     this.member_count = team.member_count;
     this.team_logo = team.team_logo;
     this.description = team.description;
-    //captain: string;
+    this.captain = team.captain ? new UserResponseDto(team.captain) : null;
   }
 }
