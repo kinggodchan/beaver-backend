@@ -33,7 +33,10 @@ export class TeamMemberJoinController {
     @Param('teamId', ParseIntPipe) teamId: number,
     @GetUser() logginedUser: User, // 현재 로그인한 사용자
   ): Promise<ApiResponseDto<void>> {
-    await this.teamMemberJoinService.requestJoinTeam( teamId, logginedUser.user_id );
+    await this.teamMemberJoinService.requestJoinTeam(
+      teamId,
+      logginedUser.user_id,
+    );
     return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
   }
 
@@ -44,7 +47,7 @@ export class TeamMemberJoinController {
     @Param('joinId', ParseIntPipe) joinId: number,
     @Body('status', new ParseEnumPipe(JoinStatus)) status: JoinStatus,
     @GetUser() logginedUser: User,
-  ): Promise<ApiResponseDto<void>>{
+  ): Promise<ApiResponseDto<void>> {
     await this.teamMemberJoinService.updateJoinStatus(
       teamId,
       joinId,
@@ -55,13 +58,16 @@ export class TeamMemberJoinController {
   }
 
   // 팀장이 자기 팀의 참가 신청 목록을 조회
-  @Get(':teamId/join')
+  @Get(':teamId/join/all')
   @Roles(UserRole.USER)
-  async getJoinRequests(
+  async getAllJoins(
     @Param('teamId', ParseIntPipe) teamId: number,
-    @GetUser() logginedUser: User,
-  ): Promise<ApiResponseDto<TeamMemberJoin[]>>{
-    const joins = await this.teamMemberJoinService.getJoinRequests(teamId, logginedUser);
-    return new ApiResponseDto(true, HttpStatus.OK, 'Teams retrieved successfully', joins);
+    @GetUser() user: User,
+  ): Promise<ApiResponseDto<TeamMemberJoin[]>> {
+    const all = await this.teamMemberJoinService.getAllJoins(
+      teamId,
+      user,
+    );
+    return new ApiResponseDto(true, HttpStatus.OK, 'Join list retrieved', all);
   }
 }
