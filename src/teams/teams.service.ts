@@ -25,7 +25,7 @@ export class TeamsService {
     logginedUser: User,
     createTeamRequestDto: CreateTeamRequestDto,
     image: Express.Multer.File
-  ): Promise<void> {
+  ): Promise<Team> {
     this.logger.verbose(`Try to creating a new Team service`);
     const { team_name, location, description } = createTeamRequestDto;
 
@@ -48,6 +48,8 @@ export class TeamsService {
     });
 
     await this.teamsRepository.save(newTeam);
+
+    return newTeam
   }
 
   // READ ALL TEAMS

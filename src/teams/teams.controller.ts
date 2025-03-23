@@ -47,7 +47,7 @@ export class TeamsController {
     @GetUser() logginedUser: User,
     @Body() createTeamRequestDto: CreateTeamRequestDto,
     @UploadedFile() image: Express.Multer.File,
-  ): Promise<ApiResponseDto<void>> {
+  ): Promise<ApiResponseDto<TeamResponseDto>> {
     this.logger.verbose(
       `Received data: ${JSON.stringify(createTeamRequestDto)}`,
     );
@@ -55,7 +55,7 @@ export class TeamsController {
       this.logger.error('Request body is missing or invalid');
       throw new Error('Invalid request body');
     }
-    await this.teamsService.createTeam(
+    const createdTeam = await this.teamsService.createTeam(
       logginedUser,
       createTeamRequestDto,
       image,
@@ -66,6 +66,7 @@ export class TeamsController {
       true,
       HttpStatus.CREATED,
       'Team created Successfully',
+      new TeamResponseDto(createdTeam),
     );
   }
 

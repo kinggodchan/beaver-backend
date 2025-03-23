@@ -30,4 +30,8 @@ export class CreateUserRequestDto {
   @IsString()
   @IsPhoneNumber('KR', { message: 'Invalid phone number format' })
   phone_number?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }
