@@ -14,7 +14,7 @@ export class UsersService {
     ) {}
 
     // CREATE - User
-    async createUser(createUserRequestDto: CreateUserRequestDto): Promise<void> {
+    async createUser(createUserRequestDto: CreateUserRequestDto): Promise<User> {
         const { username, password, email, role, phone_number } = createUserRequestDto;
 
         const newUser = this.usersRepository.create({
@@ -26,6 +26,8 @@ export class UsersService {
         });
 
         await this.usersRepository.save(newUser);
+
+        return newUser
     }
 
     // READ - by email

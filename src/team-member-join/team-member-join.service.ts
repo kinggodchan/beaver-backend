@@ -98,52 +98,44 @@ export class TeamMemberJoinService {
     joinRequest.status = status;
     await this.teamMemberJoinRepository.save(joinRequest);
 
-    if (status === JoinStatus.APPROVED) {
-      team.members.push(joinRequest);
-      await this.teamRepository.save(team);
-    }
-    
-    await this.updateTeamMemberCount(teamId); // 멤버 수 업데이트
+    // 승인된 멤버 수 계산
+    await this.updateTeamMemberCount(teamId);
   }
-
-  // 참가 신청 목록 조회 (팀장이 확인하는 부분)
-  async getJoinRequests(
+  
+  // 신청 전체 조회
+  async getAllJoins(
     teamId: number,
-    logginedUser: User,
+    user: User,
   ): Promise<TeamMemberJoin[]> {
     const team = await this.teamRepository
-    .createQueryBuilder('team')
-    .where('team.team_id = :teamId', { teamId })
-    .leftJoinAndSelect('team.captain', 'captain')
-    .getOne();
-    
-    if (!team) {
-      throw new NotFoundException('Team not found');
+      .createQueryBuilder('team')
+      .leftJoinAndSelect('team.captain', 'captain')
+      .where('team.team_id = :teamId', { teamId })
+      .getOne();
+  
+    if (!team) throw new NotFoundException('Team not found');
+    if (team.captain.user_id !== user.user_id) {
+      throw new ForbiddenException('팀장만 조회할 수 있습니다.');
     }
-    
-    // 팀장 권한 확인
-    if (team.captain.user_id !== logginedUser.user_id) {
-      throw new ForbiddenException('You are not the team leader');
-    }
-
-    // 팀의 참가 신청 목록 조회
-    const joinRequests = await this.teamMemberJoinRepository
+  
+    const allRequests = await this.teamMemberJoinRepository
       .createQueryBuilder('join')
+      .leftJoinAndSelect('join.user', 'user')
       .where('join.teamTeamId = :teamId', { teamId })
-      .leftJoinAndSelect('join.user', 'user') // 참가 신청자 정보도 함께 가져오기
+      .orderBy('join.created_at', 'DESC')
       .select([
         'join.join_id',
         'join.status',
         'join.created_at',
+        'join.modified_at',
         'user.user_id',
         'user.username',
         'user.email',
       ])
-      .orderBy('join.created_at', 'DESC')
       .getMany();
-
-    return joinRequests;
-  }
+  
+    return allRequests;
+  }  
 
   // 팀 멤버 수 업데이트
   async updateTeamMemberCount(teamId: number): Promise<void> {
@@ -160,4 +152,6 @@ export class TeamMemberJoinService {
       await this.teamRepository.save(team);
     }
   }
+
+  // 
 }

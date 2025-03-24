@@ -28,6 +28,7 @@ import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
 import { UserRole } from 'src/users/entities/user-role.enum';
 import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
 
 @Controller('api/teams')
 export class TeamsController {
@@ -46,7 +47,7 @@ export class TeamsController {
     @GetUser() logginedUser: User,
     @Body() createTeamRequestDto: CreateTeamRequestDto,
     @UploadedFile() image: Express.Multer.File,
-  ): Promise<ApiResponseDto<void>> {
+  ): Promise<ApiResponseDto<TeamResponseDto>> {
     this.logger.verbose(
       `Received data: ${JSON.stringify(createTeamRequestDto)}`,
     );
@@ -54,7 +55,7 @@ export class TeamsController {
       this.logger.error('Request body is missing or invalid');
       throw new Error('Invalid request body');
     }
-    await this.teamsService.createTeam(
+    const createdTeam = await this.teamsService.createTeam(
       logginedUser,
       createTeamRequestDto,
       image,
@@ -65,6 +66,7 @@ export class TeamsController {
       true,
       HttpStatus.CREATED,
       'Team created Successfully',
+      new TeamResponseDto(createdTeam),
     );
   }
 
@@ -107,11 +109,17 @@ export class TeamsController {
 
   // UPDATE TEAM
   @Patch('/:id')
+  @UseInterceptors(
+    FileInterceptor('image', multerOptionsFactory(new ConfigService())),
+  )
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.USER)
   async updateTeam(
     @Param('id') id: number,
     @Body() updateTeamDto: UpdateTeamRequestDto,
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponseDto<void>> {
-    await this.teamsService.updateTeam(id, updateTeamDto);
+    await this.teamsService.updateTeam(id, updateTeamDto, image);
     return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
   }
 
@@ -126,25 +134,27 @@ export class TeamsController {
   @Get('/search/:name')
   async searchTeamsByName(
     @Param('name') name: string,
-  ): Promise<ApiResponseDto<Team[]>> {
+  ): Promise<ApiResponseDto<TeamResponseDto[]>> {
     const teams = await this.teamsService.searchTeamsByName(name);
+    const teamsResponseDto = teams.map((team) => new TeamResponseDto(team));
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
       'Teams retrieved successfully',
-      teams,
+      teamsResponseDto,
     );
   }
 
   // 팀 멤버 조회
   @Get(':teamId/members')
-  async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<ApiResponseDto<User[]>> {
-    const members = await this.teamsService.getTeamMembers(teamId);
+  async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<ApiResponseDto<UserResponseDto[]>> {
+    const members: User[] = await this.teamsService.getTeamMembers(teamId);
+    const membersResponseDto = members.map((member) => new UserResponseDto(member));
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
       'Teams retrieved successfully',
-      members,
+      membersResponseDto,
     );
   }
 }
