@@ -15,6 +15,7 @@ import { ReportModule } from './report/report.module';
 import { InquiryModule } from './inquiry/inquiry.module';
 import { TeamScheduleModule } from './team-schedule/team-schedule.module';
 import { TeamMemberJoinModule } from './team-member-join/team-member-join.module';
+import { MatchModule } from './match/match.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { TeamMemberJoinModule } from './team-member-join/team-member-join.module
     ReportModule,
     InquiryModule,
     TeamScheduleModule,
-    TeamMemberJoinModule, // InquiryModule 추가 (문의하기 기능 활성화)
+    TeamMemberJoinModule,
+    MatchModule, // InquiryModule 추가 (문의하기 기능 활성화)
   ],
   providers: [
     {
