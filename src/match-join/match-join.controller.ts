@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseIntPipe,
   HttpStatus,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { MatchJoinService } from './match-join.service';
 import { CreateMatchJoinDto } from './dto/create-match-join.dto';
@@ -22,6 +23,7 @@ import { User } from 'src/users/entities/user.entity';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
 import { MatchJoin } from './entities/match-join.entity';
 import { MatchJoinResponseDto } from './dto/match-join-response.dto';
+import { JoinStatus } from 'src/team-member-join/entities/join-status.enum';
 
 @Controller('api/matches')
 export class MatchJoinController {
@@ -55,9 +57,23 @@ export class MatchJoinController {
     );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.matchJoinService.findOne(+id);
+  // match-join.controller.ts
+
+  @Patch('/:matchId/join/:joinId/status')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.USER)
+  async updateJoinStatus(
+    @Param('matchId', ParseIntPipe) matchId: number,
+    @Param('joinId', ParseIntPipe) joinId: number,
+    @Body('status', new ParseEnumPipe(JoinStatus)) status: JoinStatus,
+    @GetUser() user: User,
+  ): Promise<ApiResponseDto<void>> {
+    await this.matchJoinService.updateJoinStatus(matchId, joinId, user, status);
+    return new ApiResponseDto(
+      true,
+      HttpStatus.OK,
+      '경기 신청 상태 업데이트 완료',
+    );
   }
 
   @Patch(':id')

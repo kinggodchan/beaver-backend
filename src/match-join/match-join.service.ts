@@ -91,9 +91,44 @@ export class MatchJoinService {
     
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} matchJoin`;
+  // match-join.service.ts
+
+async updateJoinStatus(
+  matchId: number,
+  joinId: number,
+  user: User,
+  status: JoinStatus,
+): Promise<void> {
+  const match = await this.matchRepository.findOne({
+    where: { match_id: matchId },
+    relations: ['host_team', 'host_team.captain'],
+  });
+
+  if (!match) throw new NotFoundException('경기를 찾을 수 없습니다.');
+
+  // ⚠️ 주최팀 주장인지 검증
+  if (match.host_team.captain.user_id !== user.user_id) {
+    throw new ForbiddenException('주최팀 주장만 승인 또는 거절할 수 있습니다.');
   }
+
+  const join = await this.matchJoinRepository.findOne({
+    where: { id: joinId },
+    relations: ['match', 'team'],
+  });
+
+  if (!join) throw new NotFoundException('신청 정보를 찾을 수 없습니다.');
+
+  join.status = status;
+  await this.matchJoinRepository.save(join);
+
+  // ✅ 승인된 경우 → match 엔티티에 상대팀 세팅
+  if (status === JoinStatus.APPROVED) {
+    match.opponent_team = join.team;
+    match.status = MatchStatus.MATCHED;
+    await this.matchRepository.save(match);
+  }
+}
+
 
   update(id: number, updateMatchJoinDto: UpdateMatchJoinDto) {
     return `This action updates a #${id} matchJoin`;
