@@ -1,5 +1,7 @@
 // dto/match-response.dto.ts
+import { MatchResultResponseDto } from 'src/match-result/dto/match-result-response.dto';
 import { Match } from '../entities/match.entity';
+
 
 export class MatchResponseDto {
   match_id: number;
@@ -8,6 +10,7 @@ export class MatchResponseDto {
   match_date: Date;
   location: string;
   status: string;
+  result?: MatchResultResponseDto;
 
   constructor(match: Match) {
     this.match_id = match.match_id;
@@ -16,5 +19,10 @@ export class MatchResponseDto {
     this.match_date = match.match_date;
     this.location = match.location;
     this.status = match.status;
+
+    // ✅ result 있을 때만 요약 형태로 담기
+    if (match.result) {
+      this.result = new MatchResultResponseDto(match.result);
+    }
   }
 }

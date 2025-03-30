@@ -1,29 +1,59 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { MatchResultService } from './match-result.service';
 import { CreateMatchResultDto } from './dto/create-match-result.dto';
 import { UpdateMatchResultDto } from './dto/update-match-result.dto';
+import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/custom-guards-decorators/custom-role.guard';
+import { UserRole } from 'src/users/entities/user-role.enum';
+import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
+import { MatchResult } from './entities/match-result.entity';
+import { MatchResultResponseDto } from './dto/match-result-response.dto';
 
-@Controller('match-result')
+@Controller('api/matches')
 export class MatchResultController {
   constructor(private readonly matchResultService: MatchResultService) {}
 
-  @Post()
-  create(@Body() createMatchResultDto: CreateMatchResultDto) {
-    return this.matchResultService.create(createMatchResultDto);
+  @Post('/:matchId/result')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.USER)
+  async createResult(
+    @Param('matchId', ParseIntPipe) matchId: number,
+    @Body() dto: CreateMatchResultDto,
+    @GetUser() user: User,
+  ): Promise<ApiResponseDto<void>> {
+    await this.matchResultService.createResult(matchId, dto, user);
+    return new ApiResponseDto(true, 201, '경기 결과 저장 완료');
   }
 
-  @Get()
-  findAll() {
-    return this.matchResultService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.matchResultService.findOne(+id);
+  // match-result.controller.ts
+  @Get('/:matchId/result')
+  async getResult(
+    @Param('matchId', ParseIntPipe) matchId: number,
+  ): Promise<ApiResponseDto<MatchResultResponseDto>> {
+    const result = new MatchResultResponseDto(
+      await this.matchResultService.getResultByMatchId(matchId),
+    );
+    return new ApiResponseDto(true, 200, '경기 결과 조회 성공', result);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMatchResultDto: UpdateMatchResultDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateMatchResultDto: UpdateMatchResultDto,
+  ) {
     return this.matchResultService.update(+id, updateMatchResultDto);
   }
 

@@ -37,10 +37,13 @@ export class MatchService {
 
   // match.service.ts
   async getAllMatches(): Promise<Match[]> {
-    return await this.matchRepository.find({
-      relations: ['host_team', 'opponent_team'],
-      order: { match_date: 'ASC' },
-    });
+    return this.matchRepository
+      .createQueryBuilder('match')
+      .leftJoinAndSelect('match.result', 'result')
+      .leftJoinAndSelect('match.host_team', 'host_team')
+      .leftJoinAndSelect('match.opponent_team', 'opponent_team')
+      .orderBy('match.match_date', 'DESC')
+      .getMany();
   }
 
   findOne(id: number) {
