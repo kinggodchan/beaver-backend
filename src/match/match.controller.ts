@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MatchService } from './match.service';
 import { CreateMatchDto } from './dto/create-match.dto';
@@ -63,6 +64,34 @@ export class MatchController {
       HttpStatus.OK,
       '경기 목록 조회 성공',
       response,
+    );
+  }
+
+  // match.controller.ts
+  @Get('team/:teamId')
+  async getTeamMatches(
+    @Param('teamId', ParseIntPipe) teamId: number,
+  ): Promise<ApiResponseDto<MatchResponseDto[]>> {
+    const matches = await this.matchService.getTeamMatches(teamId);
+    const result = matches.map((match) => new MatchResponseDto(match));
+    return new ApiResponseDto(
+      true,
+      HttpStatus.OK,
+      '해당 팀의 경기 목록 조회 성공',
+      result,
+    );
+  }
+
+  @Get(':matchId')
+  async getMatchById(
+    @Param('matchId', ParseIntPipe) matchId: number,
+  ): Promise<ApiResponseDto<MatchResponseDto>> {
+    const match = await this.matchService.getMatchById(matchId);
+    return new ApiResponseDto(
+      true,
+      HttpStatus.OK,
+      '경기 조회 성공',
+      new MatchResponseDto(match),
     );
   }
 

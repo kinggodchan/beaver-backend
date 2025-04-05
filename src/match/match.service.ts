@@ -35,7 +35,7 @@ export class MatchService {
     return await this.matchRepository.save(match);
   }
 
-  // match.service.ts
+  // match 전체 정보 확인
   async getAllMatches(): Promise<Match[]> {
     return this.matchRepository
       .createQueryBuilder('match')
@@ -46,7 +46,7 @@ export class MatchService {
       .getMany();
   }
 
-  // match.service.ts
+  // 날짜별 경기 확인
   async getMatchesByDate(date: string): Promise<Match[]> {
     return await this.matchRepository
       .createQueryBuilder('match')
@@ -56,6 +56,31 @@ export class MatchService {
       .where('DATE(match.match_date) = :date', { date })
       .orderBy('match.match_date', 'ASC')
       .getMany();
+  }
+
+  // 팀별 경기 확인
+  async getTeamMatches(teamId: number): Promise<Match[]> {
+    return this.matchRepository
+      .createQueryBuilder('match')
+      .leftJoinAndSelect('match.host_team', 'host_team')
+      .leftJoinAndSelect('match.opponent_team', 'opponent_team')
+      .leftJoinAndSelect('match.result', 'result')
+      .where('host_team.team_id = :teamId', { teamId })
+      .orWhere('opponent_team.team_id = :teamId', { teamId })
+      .orderBy('match.match_date', 'ASC')
+      .getMany();
+  }
+
+  // 개별 경기 확인
+  async getMatchById(matchId: number): Promise<Match> {
+    const match = await this.matchRepository.findOne({
+      where: { match_id: matchId },
+      relations: ['host_team', 'opponent_team', 'result'],
+    });
+    if (!match) {
+      throw new NotFoundException(`ID가 ${matchId}인 경기를 찾을 수 없습니다.`);
+    }
+    return match;
   }
 
   update(id: number, updateMatchDto: UpdateMatchDto) {
