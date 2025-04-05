@@ -46,8 +46,16 @@ export class MatchService {
       .getMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} match`;
+  // match.service.ts
+  async getMatchesByDate(date: string): Promise<Match[]> {
+    return await this.matchRepository
+      .createQueryBuilder('match')
+      .leftJoinAndSelect('match.host_team', 'host_team')
+      .leftJoinAndSelect('match.opponent_team', 'opponent_team')
+      .leftJoinAndSelect('match.result', 'result')
+      .where('DATE(match.match_date) = :date', { date })
+      .orderBy('match.match_date', 'ASC')
+      .getMany();
   }
 
   update(id: number, updateMatchDto: UpdateMatchDto) {

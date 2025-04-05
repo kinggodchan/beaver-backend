@@ -4,7 +4,7 @@ import { MatchResult } from 'src/match-result/entities/match-result.entity';
 import { MatchStatus } from './math-status.enum';
 
 
-@Entity()
+@Entity('matches')
 export class Match {
   @PrimaryGeneratedColumn()
   match_id: number;

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { MatchService } from './match.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
@@ -41,9 +51,19 @@ export class MatchController {
     );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.matchService.findOne(+id);
+  // match.controller.ts
+  @Get('date/:date')
+  async getMatchesByDate(
+    @Param('date') date: string,
+  ): Promise<ApiResponseDto<MatchResponseDto[]>> {
+    const matches = await this.matchService.getMatchesByDate(date);
+    const response = matches.map((match) => new MatchResponseDto(match));
+    return new ApiResponseDto(
+      true,
+      HttpStatus.OK,
+      '경기 목록 조회 성공',
+      response,
+    );
   }
 
   @Patch(':id')
