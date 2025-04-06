@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  HttpStatus,
 } from '@nestjs/common';
 import { MatchResultService } from './match-result.service';
 import { CreateMatchResultDto } from './dto/create-match-result.dto';
@@ -35,7 +36,7 @@ export class MatchResultController {
     @GetUser() user: User,
   ): Promise<ApiResponseDto<void>> {
     await this.matchResultService.createResult(matchId, dto, user);
-    return new ApiResponseDto(true, 201, '경기 결과 저장 완료');
+    return new ApiResponseDto(true, HttpStatus.OK, '경기 결과 저장 완료');
   }
 
   // match-result.controller.ts
@@ -46,15 +47,19 @@ export class MatchResultController {
     const result = new MatchResultResponseDto(
       await this.matchResultService.getResultByMatchId(matchId),
     );
-    return new ApiResponseDto(true, 200, '경기 결과 조회 성공', result);
+    return new ApiResponseDto(true, HttpStatus.OK, '경기 결과 조회 성공', result);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateMatchResultDto: UpdateMatchResultDto,
-  ) {
-    return this.matchResultService.update(+id, updateMatchResultDto);
+  @Patch('/:matchId/result')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles(UserRole.USER)
+  async updateResult(
+    @Param('matchId', ParseIntPipe) matchId: number,
+    @Body() dto: UpdateMatchResultDto,
+    @GetUser() user: User,
+  ): Promise<ApiResponseDto<void>> {
+    await this.matchResultService.updateMatchResult(matchId, dto, user);
+    return new ApiResponseDto(true, HttpStatus.OK, '경기 결과 수정 완료');
   }
 
   @Delete(':id')

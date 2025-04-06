@@ -78,8 +78,41 @@ export class MatchResultService {
     return result;
   }
 
-  update(id: number, updateMatchResultDto: UpdateMatchResultDto) {
-    return `This action updates a #${id} matchResult`;
+  // matches.service.ts
+  async updateMatchResult(
+    matchId: number,
+    dto: UpdateMatchResultDto,
+    user: User,
+  ): Promise<void> {
+    const match = await this.matchRepo.findOne({
+      where: { match_id: matchId },
+      relations: ['host_team', 'host_team.captain', 'result'],
+    });
+
+    if (!match) throw new NotFoundException('경기를 찾을 수 없습니다.');
+
+    // 주최팀 주장만 가능
+    if (match.host_team.captain.user_id !== user.user_id) {
+      throw new ForbiddenException('경기 결과 수정 권한이 없습니다.');
+    }
+
+    if (match.result) {
+      // 기존 결과 수정
+      match.result.host_score = dto.host_score;
+      match.result.opponent_score = dto.opponent_score;
+      await this.matchResultRepo.save(match.result);
+    } else {
+      // 새 결과 생성
+      const result = this.matchResultRepo.create({
+        match,
+        host_score: dto.host_score,
+        opponent_score: dto.opponent_score,
+      });
+      await this.matchResultRepo.save(result);
+
+      match.result = result;
+    }
+    await this.matchRepo.save(match);
   }
 
   remove(id: number) {
