@@ -7,14 +7,17 @@ import { Inquiry } from './entities/inquiry.entity';
 export class InquiryController {
   constructor(private readonly inquiryService: InquiryService) {}
 
-  @Post()
-  async create(@Body() dto: CreateInquiryDto): Promise<Inquiry> {
-    try {
-      return await this.inquiryService.createInquiry(dto);
-    } catch (error) {
-      throw new InternalServerErrorException('문의 등록 중 오류 발생');
-    }
+
+@Post()
+async create(@Body() dto: CreateInquiryDto): Promise<{ id: number }> {
+  try {
+    const inquiry = await this.inquiryService.createInquiry(dto);
+    return { id: inquiry.inquiry_id }; 
+  } catch (error) {
+    throw new InternalServerErrorException('문의 등록 중 오류 발생');
   }
+}
+
 
   @Get()
   async getAll(): Promise<Inquiry[]> {
