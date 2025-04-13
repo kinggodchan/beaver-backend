@@ -74,8 +74,13 @@ export class BoardController {
 
   /** 📌 거래 게시글 생성 */
   @Post('trade-posts')
-  createTradePost(@Body() dto: CreateTradePostDto) {
-    return this.boardService.createTradePost(dto);
+  @UseInterceptors(
+    FileInterceptor('file', multerOptionsFactory(new ConfigService(), 'trade-posts')),
+  )
+  createTradePost(
+    @Body() dto: CreateTradePostDto,
+    @UploadedFile() file: Express.Multer.File,) {
+    return this.boardService.createTradePost(dto, file);
   }
 
   /** 📌 거래 게시글 수정 */

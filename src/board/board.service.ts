@@ -49,7 +49,8 @@ export class BoardService {
   /** 📌 게시판 삭제 */
   async deleteBoard(id: number): Promise<{ message: string }> {
     const result = await this.boardRepo.delete(id);
-    if (result.affected === 0) throw new NotFoundException(`Board with ID ${id} not found`);
+    if (result.affected === 0)
+      throw new NotFoundException(`Board with ID ${id} not found`);
     return { message: `Board with ID ${id} successfully deleted` };
   }
 
@@ -60,27 +61,35 @@ export class BoardService {
 
   /** 📌 특정 일반 게시글 조회 */
   async getPost(id: number): Promise<Post> {
-    const post = await this.postRepo.findOne({ where: { post_id: id }, relations: ['board'] });
+    const post = await this.postRepo.findOne({
+      where: { post_id: id },
+      relations: ['board'],
+    });
     if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
     return post;
   }
 
   /** 📌 일반 게시글 생성 */
-  async createPost(dto: CreatePostDto, file?: Express.Multer.File): Promise<Post> {
+  async createPost(
+    dto: CreatePostDto,
+    file?: Express.Multer.File,
+  ): Promise<Post> {
     const { boardId, title, content } = dto;
 
     // 📌 boardId가 실제 존재하는지 체크
-    const board = await this.boardRepo.findOne({ where: { board_id: boardId } });
-    if (!board) throw new NotFoundException(`Board with ID ${boardId} not found`);
+    const board = await this.boardRepo.findOne({
+      where: { board_id: boardId },
+    });
+    if (!board)
+      throw new NotFoundException(`Board with ID ${boardId} not found`);
 
     let url: string | undefined;
     if (file) {
       const s3Bucket = process.env.AWS_S3_BUCKET as string;
       const s3Region = process.env.AWS_REGION as string;
-      
+
       url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(file as any).key}`;
     }
-
 
     // 📌 Post 엔티티 생성
     const post = this.postRepo.create({
@@ -109,7 +118,8 @@ export class BoardService {
   /** 📌 일반 게시글 삭제 */
   async deletePost(id: number): Promise<{ message: string }> {
     const result = await this.postRepo.delete(id);
-    if (result.affected === 0) throw new NotFoundException(`Post with ID ${id} not found`);
+    if (result.affected === 0)
+      throw new NotFoundException(`Post with ID ${id} not found`);
     return { message: `Post with ID ${id} successfully deleted` };
   }
 
@@ -125,22 +135,38 @@ export class BoardService {
       relations: ['board'], // 🟢 board 정보 포함
     });
 
-    if (!tradePost) throw new NotFoundException(`TradePost with ID ${id} not found`);
+    if (!tradePost)
+      throw new NotFoundException(`TradePost with ID ${id} not found`);
 
     return tradePost;
   }
 
   /** 📌 거래 게시글 생성 */
-  async createTradePost(dto: CreateTradePostDto): Promise<TradePost> {
+  async createTradePost(
+    dto: CreateTradePostDto,
+    file?: Express.Multer.File,
+  ): Promise<TradePost> {
     const { boardId, authorId, title, content, price, tradeStatus } = dto;
+
+    let url: string | undefined;
+    if (file) {
+      const s3Bucket = process.env.AWS_S3_BUCKET as string;
+      const s3Region = process.env.AWS_REGION as string;
+
+      url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(file as any).key}`;
+    }
 
     // 🟢 게시판 정보 가져오기
     const board = await this.getBoard(boardId);
-    if (!board) throw new NotFoundException(`Board with ID ${boardId} not found`);
+    if (!board)
+      throw new NotFoundException(`Board with ID ${boardId} not found`);
 
     // 🟢 사용자 정보 가져오기 (authorId -> author 객체로 변환)
-    const author = await this.userRepo.findOne({ where: { user_id: authorId } });
-    if (!author) throw new NotFoundException(`User with ID ${authorId} not found`);
+    const author = await this.userRepo.findOne({
+      where: { user_id: authorId },
+    });
+    if (!author)
+      throw new NotFoundException(`User with ID ${authorId} not found`);
 
     // 🟢 새로운 거래 게시글 생성
     const tradePost = this.tradePostRepo.create({
@@ -149,6 +175,7 @@ export class BoardService {
       price,
       trade_status: tradeStatus,
       board,
+      file: url,
       author, // ✅ authorId 대신 author 객체를 직접 할당
     });
 
@@ -156,7 +183,10 @@ export class BoardService {
   }
 
   /** 📌 거래 게시글 수정 */
-  async updateTradePost(id: number, dto: UpdateTradePostDto): Promise<TradePost> {
+  async updateTradePost(
+    id: number,
+    dto: UpdateTradePostDto,
+  ): Promise<TradePost> {
     const tradePost = await this.getTradePost(id);
 
     if (dto.board_id) {
@@ -171,7 +201,8 @@ export class BoardService {
   /** 📌 거래 게시글 삭제 */
   async deleteTradePost(id: number): Promise<{ message: string }> {
     const result = await this.tradePostRepo.delete(id);
-    if (result.affected === 0) throw new NotFoundException(`TradePost with ID ${id} not found`);
+    if (result.affected === 0)
+      throw new NotFoundException(`TradePost with ID ${id} not found`);
     return { message: `TradePost with ID ${id} successfully deleted` };
   }
 }

@@ -11,7 +11,7 @@ export class CreateTradePostDto {
   content: string;
 
   @IsNotEmpty()
-  @IsNumber()
+  //@IsNumber()
   price: number;
 
   @IsEnum(TradeStatus)  
