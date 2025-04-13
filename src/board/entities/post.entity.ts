@@ -13,6 +13,9 @@ export class Post {
   @Column()
   content: string;
 
+  @Column({ nullable: true })
+  file: string;
+
   // Board와의 관계 설정
   @ManyToOne(() => Board, (board) => board.posts, { onDelete: 'CASCADE' })
   board: Board;

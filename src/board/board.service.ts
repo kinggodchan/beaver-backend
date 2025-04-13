@@ -66,18 +66,28 @@ export class BoardService {
   }
 
   /** 📌 일반 게시글 생성 */
-  async createPost(dto: CreatePostDto): Promise<Post> {
+  async createPost(dto: CreatePostDto, file?: Express.Multer.File): Promise<Post> {
     const { boardId, title, content } = dto;
 
     // 📌 boardId가 실제 존재하는지 체크
     const board = await this.boardRepo.findOne({ where: { board_id: boardId } });
     if (!board) throw new NotFoundException(`Board with ID ${boardId} not found`);
 
+    let url: string | undefined;
+    if (file) {
+      const s3Bucket = process.env.AWS_S3_BUCKET as string;
+      const s3Region = process.env.AWS_REGION as string;
+      
+      url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(file as any).key}`;
+    }
+
+
     // 📌 Post 엔티티 생성
     const post = this.postRepo.create({
       title,
       content,
       board, // ✅ board 객체를 직접 연결
+      file: url,
     });
 
     return this.postRepo.save(post);
