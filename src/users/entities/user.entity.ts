@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { UserRole } from './user-role.enum';
 import { Team } from 'src/teams/entities/team.entity'; // 팀 엔티티 추가
-import { Article } from 'src/articles/entities/article.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { TradePost } from 'src/board/entities/trade-post.entity';
 import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
@@ -39,10 +38,7 @@ export class User {
 
   @ManyToMany(() => Team, (team) => team.members)
   teams: Team[]; // 유저가 여러 팀에 속할 수 있음
-
-  @OneToMany(() => Article, (article) => article.author, { eager: false })
-  articles: Article[];
-
+  
   @OneToMany(() => Comment, (comment) => comment.author, { cascade: true })
   comments: Comment[];
 

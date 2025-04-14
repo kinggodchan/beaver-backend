@@ -1,11 +1,10 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // ✅ 환경 변수 모듈 추가
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
-import { ArticlesModule } from './articles/articles.module';
 import { UnauthorizedExceptionFilter } from './common/filters/unauthorization.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TeamsModule } from './teams/teams.module';
@@ -23,7 +22,6 @@ import { MatchResultModule } from './match-result/match-result.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // .env 파일을 사용할 수 있도록 설정
     TypeOrmModule.forRoot(typeOrmConfig), //기존 TypeORM 설정 유지
-    ArticlesModule,
     AuthModule,
     UsersModule,
     TeamsModule,
