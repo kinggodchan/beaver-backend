@@ -42,34 +42,46 @@ export class AuthService {
     }
 
     // Sign-In
-    async signIn(signInRequestDto : SignInRequestDto): Promise<string> {
-        this.logger.verbose(`User with email: ${signInRequestDto.email} is signing in`);
-
-        const { email, password } = signInRequestDto;
-
-        try{
-            const existingUser = await this.userService.findUserByEmail(email);
-
-            if(!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
-                throw new UnauthorizedException('Invalid credentials');
-            }
-
-            // [1] JWT 토큰 생성
-            const payload = {
-                id: existingUser.user_id,
-                email: existingUser.email,
-                username: existingUser.username,
-                role: existingUser.role
-            };
-            const accessToken = await this.jwtService.sign(payload);
-
-            this.logger.verbose(`User with email: ${signInRequestDto.email} issued JWT ${accessToken}`);
-            return accessToken;
-        } catch (error) {
-            this.logger.error(`Invalid credentials or Internal Server error`);
-            throw error;
-        }
+// Sign-In
+async signIn(signInRequestDto: SignInRequestDto): Promise<{ accessToken: string; user: any }> {
+    this.logger.verbose(`User with email: ${signInRequestDto.email} is signing in`);
+  
+    const { email, password } = signInRequestDto;
+  
+    try {
+      const existingUser = await this.userService.findUserByEmail(email);
+  
+      if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+  
+      // [1] JWT 토큰 생성
+      const payload = {
+        id: existingUser.user_id,
+        email: existingUser.email,
+        username: existingUser.username,
+        role: existingUser.role,
+      };
+      const accessToken = await this.jwtService.sign(payload);
+  
+      this.logger.verbose(`User with email: ${signInRequestDto.email} issued JWT ${accessToken}`);
+  
+      // [2] user 객체에서 필요한 값만 추려서 보내기 (비밀번호 빼고)
+      const user = {
+        id: existingUser.user_id,
+        email: existingUser.email,
+        username: existingUser.username,
+        role: existingUser.role,
+        phone_number: existingUser.phone_number,
+      };
+  
+      return { accessToken, user };
+    } catch (error) {
+      this.logger.error(`Invalid credentials or Internal Server error`);
+      throw error;
     }
+  }
+  
 
     // Hashing password
     async hashPassword(password: string): Promise<string> {

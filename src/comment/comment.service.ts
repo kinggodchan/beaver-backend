@@ -5,6 +5,7 @@ import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { Post } from 'src/board/entities/post.entity';
+import { TradePost } from 'src/board/entities/trade-post.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
@@ -12,52 +13,86 @@ export class CommentService {
   constructor(
     @InjectRepository(Comment) private commentRepo: Repository<Comment>,
     @InjectRepository(Post) private postRepo: Repository<Post>,
+    @InjectRepository(TradePost) private tradeRepo: Repository<TradePost>,
     @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
   /** 📌 댓글 생성 */
-  async createComment(dto: CreateCommentDto): Promise<Comment> {
-    const post = await this.postRepo.findOne({ where: { post_id: dto.post_id } });
-    if (!post) throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+  async createComment(
+    dto: CreateCommentDto,
+    userId: number,
+    postId: number,
+    boardId: number
+  ): Promise<Comment> {
+    const user = await this.userRepo.findOne({ where: { user_id: userId } });
+    if (!user) throw new NotFoundException('작성자 정보가 없습니다.');
 
-    const author = await this.userRepo.findOne({ where: { user_id: dto.author_id } });
-    if (!author) throw new NotFoundException('작성자를 찾을 수 없습니다.');
+    let post: Post | null = null;
+    let tradePost: TradePost | null = null;
 
-    const comment = this.commentRepo.create({ ...dto, post, author });
-    return this.commentRepo.save(comment);
-  }
-
-  /** 📌 특정 게시글(post_id)의 댓글 조회 */
-  async getCommentsByPostId(postId: number): Promise<Comment[]> {
-    const comments = await this.commentRepo.find({
-      where: { post: { post_id: postId } },
-      relations: ['author', 'post'],
-    });
-
-    if (!comments.length) {
-      throw new NotFoundException(`게시글 ID ${postId}에 대한 댓글이 없습니다.`);
+    if (boardId === 1) {
+      post = await this.postRepo.findOne({ where: { post_id: postId } });
+      if (!post) throw new NotFoundException('정보 게시글이 존재하지 않습니다.');
+    } else if (boardId === 2) {
+      tradePost = await this.tradeRepo.findOne({ where: { trade_post_id: postId } });
+      if (!tradePost) throw new NotFoundException('거래 게시글이 존재하지 않습니다.');
+    } else {
+      throw new NotFoundException('유효하지 않은 board_id입니다.');
     }
 
-    return comments;
+    const comment = new Comment();
+    comment.content = dto.content;
+    comment.author = user;
+    comment.board_id = boardId; // ✅ 추가
+
+    if (post) comment.post = post;
+    if (tradePost) comment.tradePost = tradePost;
+
+    return await this.commentRepo.save(comment);
+  }
+
+  /** 📌 특정 게시글의 댓글 조회 (boardId 필터링) */
+  async getCommentsByPostId(postId: number, boardId: number): Promise<Comment[]> {
+    if (boardId === 1) {
+      return await this.commentRepo.find({
+        where: { post: { post_id: postId } },
+        relations: ['author'],
+        order: { createdAt: 'ASC' },
+      });
+    } else if (boardId === 2) {
+      return await this.commentRepo.find({
+        where: { tradePost: { trade_post_id: postId } },
+        relations: ['author'],
+        order: { createdAt: 'ASC' },
+      });
+    } else {
+      throw new NotFoundException('유효하지 않은 board_id입니다.');
+    }
   }
 
   /** 📌 댓글 수정 */
   async updateComment(id: number, dto: UpdateCommentDto): Promise<Comment> {
-    const comment = await this.commentRepo.preload({ comment_id: id, ...dto });
-
-    if (!comment) throw new NotFoundException(`Comment with ID ${id} not found`);
-
+    const comment = await this.commentRepo.findOne({ where: { comment_id: id } });
+    if (!comment) throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    comment.content = dto.content;
     return this.commentRepo.save(comment);
   }
 
-/** 📌 댓글 삭제 */
-async deleteComment(id: number): Promise<string> {
-  const result = await this.commentRepo.delete(id);
-  if (result.affected === 0) {
-    throw new NotFoundException(`Comment with ID ${id} not found`);
+  /** 📌 댓글 삭제 */
+  async deleteComment(id: number): Promise<string> {
+    const result = await this.commentRepo.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+    return '댓글이 삭제되었습니다.';
   }
 
-  return '댓글이 삭제되었습니다.';  // 성공 메시지 반환
-}
-
+  /** 🔒 댓글 수정/삭제 권한 체크 */
+  async checkOwnership(commentId: number, userId: number): Promise<boolean> {
+    const comment = await this.commentRepo.findOne({
+      where: { comment_id: commentId },
+      relations: ['author'],
+    });
+    return comment?.author?.user_id === userId;
+  }
 }
