@@ -6,7 +6,6 @@ export class CreateUserRequestDto {
   @IsString()
   @MinLength(2)
   @MaxLength(20)
-  @Matches(/^[가-힣]+$/, { message: 'Username is invalid' })
   username: string;
 
   @IsNotEmpty()

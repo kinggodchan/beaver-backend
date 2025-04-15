@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -6,6 +16,9 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateTradePostDto } from './dto/create-trade-post.dto';
 import { UpdateTradePostDto } from './dto/update-trade-post.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptionsFactory } from 'src/configs/multer.options';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('boards')
 export class BoardController {
@@ -25,8 +38,14 @@ export class BoardController {
 
   /** 📌 일반 게시글 생성 */
   @Post('posts')
-  createPost(@Body() dto: CreatePostDto) {
-    return this.boardService.createPost(dto);
+  @UseInterceptors(
+    FileInterceptor('file', multerOptionsFactory(new ConfigService(), 'posts')),
+  )
+  createPost(
+    @Body() dto: CreatePostDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.boardService.createPost(dto, file);
   }
 
   /** 📌 일반 게시글 수정 */
@@ -50,14 +69,18 @@ export class BoardController {
   /** 📌 특정 거래 게시글 조회 */
   @Get('trade-posts/:id')
   getTradePost(@Param('id') id: string) {
-    return this.boardService.getTradePost(Number(id)); 
+    return this.boardService.getTradePost(Number(id));
   }
-  
 
   /** 📌 거래 게시글 생성 */
   @Post('trade-posts')
-  createTradePost(@Body() dto: CreateTradePostDto) {
-    return this.boardService.createTradePost(dto);
+  @UseInterceptors(
+    FileInterceptor('file', multerOptionsFactory(new ConfigService(), 'trade-posts')),
+  )
+  createTradePost(
+    @Body() dto: CreateTradePostDto,
+    @UploadedFile() file: Express.Multer.File,) {
+    return this.boardService.createTradePost(dto, file);
   }
 
   /** 📌 거래 게시글 수정 */

@@ -39,7 +39,10 @@ export class TeamsController {
   // CREATE TEAM
   @Post('/')
   @UseInterceptors(
-    FileInterceptor('image', multerOptionsFactory(new ConfigService())),
+    FileInterceptor(
+      'image',
+      multerOptionsFactory(new ConfigService(), 'team-logos'),
+    ),
   )
   @UseGuards(AuthGuard(), RolesGuard)
   @Roles(UserRole.USER)
@@ -110,7 +113,7 @@ export class TeamsController {
   // UPDATE TEAM
   @Patch('/:id')
   @UseInterceptors(
-    FileInterceptor('image', multerOptionsFactory(new ConfigService())),
+    FileInterceptor('image', multerOptionsFactory(new ConfigService(), 'team-logos')),
   )
   @UseGuards(AuthGuard(), RolesGuard)
   @Roles(UserRole.USER)
@@ -147,9 +150,13 @@ export class TeamsController {
 
   // 팀 멤버 조회
   @Get(':teamId/members')
-  async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<ApiResponseDto<UserResponseDto[]>> {
+  async getTeamMembers(
+    @Param('teamId', ParseIntPipe) teamId: number,
+  ): Promise<ApiResponseDto<UserResponseDto[]>> {
     const members: User[] = await this.teamsService.getTeamMembers(teamId);
-    const membersResponseDto = members.map((member) => new UserResponseDto(member));
+    const membersResponseDto = members.map(
+      (member) => new UserResponseDto(member),
+    );
     return new ApiResponseDto(
       true,
       HttpStatus.OK,

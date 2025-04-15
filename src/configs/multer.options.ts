@@ -5,7 +5,7 @@ import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer
 import { S3Client } from '@aws-sdk/client-s3';
 
 
-export const multerOptionsFactory = (configService: ConfigService): MulterOptions => {
+export const multerOptionsFactory = (configService: ConfigService, folderName: string): MulterOptions => {
   const s3 = new S3Client({
     region: configService.get<string>('AWS_REGION') as string,
     credentials: {
@@ -22,7 +22,7 @@ export const multerOptionsFactory = (configService: ConfigService): MulterOption
       key: (req, file, cb) => {
         const fileExt = extname(file.originalname);
         const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
-        cb(null, `team-logos/${fileName}`); // S3의 teams 폴더에 저장
+        cb(null, `${folderName}/${fileName}`); // S3의 teams 폴더에 저장
       },
     }),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한

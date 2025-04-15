@@ -18,6 +18,9 @@ export class TradePost {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
+  @Column({ nullable: true })
+  file: string;
+
   @Column({ type: 'enum', enum: TradeStatus, default: TradeStatus.AVAILABLE }) // ✅ Enum 적용
   trade_status: TradeStatus;
 
