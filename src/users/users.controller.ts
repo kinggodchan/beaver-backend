@@ -1,14 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpStatus,
-  Logger,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Logger, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserRequestDto } from './dto/create-user-request.dto';
+import { CreateUserRequestDto  } from './dto/create-user-request.dto';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
@@ -46,7 +38,7 @@ export class UserController {
       usersResponseDto,
     );
   }
-
+  
   //이 엔드포인트는 로그인된 사용자만 접근 가능하며, req.user에서 유저 정보를 꺼냄
   @Get('/me')
   @UseGuards(JwtAuthGuard)
@@ -58,6 +50,6 @@ export class UserController {
       new UserResponseDto(user),
     );
   }
-
+  
   //조회, 수정, 삭제(접근 권한이 필요하다. ==> ADMIN, 또는 본인)
 }

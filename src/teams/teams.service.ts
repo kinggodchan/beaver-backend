@@ -20,39 +20,35 @@ export class TeamsService {
     private teamMemberJoinRepository: Repository<TeamMemberJoin>,
   ) {}
 
-  // CREATE TEAM
+  // 팀 생성 
   async createTeam(
     logginedUser: User,
     createTeamRequestDto: CreateTeamRequestDto,
     image: Express.Multer.File
   ): Promise<Team> {
-    this.logger.verbose(`Try to creating a new Team service`);
     const { team_name, location, description } = createTeamRequestDto;
 
-    let logoUrl: string | undefined;
+    let url: string | undefined;
     if (image) {
-      // S3의 key 값(image.key)을 사용하여 정확한 URL 생성
       const s3Bucket = process.env.AWS_S3_BUCKET as string;
       const s3Region = process.env.AWS_REGION as string;
       
-      logoUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
-      this.logger.debug(`✅ S3 File URL: ${logoUrl}`);
+      url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
     }
 
     const newTeam = this.teamsRepository.create({
       team_name,
       location,
       description,
-      team_logo: logoUrl,
+      team_logo: url,
       captain: logginedUser,
     });
 
     await this.teamsRepository.save(newTeam);
-
     return newTeam
   }
 
-  // READ ALL TEAMS
+  // 모든 팀 조회
   async getAllTeams(): Promise<Team[]> {
     this.logger.verbose(`Retrieving all Teams`);
 
@@ -62,7 +58,7 @@ export class TeamsService {
     return foundTeams;
   }
 
-  // READ - by ID
+  // 팀 id로 조회
   async getTeamDetailById(id: number): Promise<Team> {
     this.logger.verbose(`Retrieving a team by id: ${id}`);
     const foundTeam = await this.teamsRepository
