@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  ParseIntPipe,
-  UseGuards,
-  HttpStatus,
-} from '@nestjs/common';
+import {Controller,Get,Post,Body,Patch,Param,Delete,ParseIntPipe,UseGuards,HttpStatus} from '@nestjs/common';
 import { MatchResultService } from './match-result.service';
 import { CreateMatchResultDto } from './dto/create-match-result.dto';
 import { UpdateMatchResultDto } from './dto/update-match-result.dto';

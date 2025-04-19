@@ -1,11 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Like } from 'typeorm';
 import { Team } from './entities/team.entity';
-import { In, Like, Repository } from 'typeorm';
+import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
+import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { UpdateTeamRequestDto } from './dto/update-team-request.dto';
 import { User } from 'src/users/entities/user.entity';
-import { TeamMemberJoin } from 'src/team-member-join/entities/team-member-join.entity';
 import { JoinStatus } from 'src/team-member-join/entities/join-status.enum';
 import { S3 } from 'aws-sdk';
 
@@ -20,11 +20,11 @@ export class TeamsService {
     private teamMemberJoinRepository: Repository<TeamMemberJoin>,
   ) {}
 
-  // 팀 생성 
+  // 팀 생성
   async createTeam(
     logginedUser: User,
     createTeamRequestDto: CreateTeamRequestDto,
-    image: Express.Multer.File
+    image: Express.Multer.File,
   ): Promise<Team> {
     const { team_name, location, description } = createTeamRequestDto;
 
@@ -32,7 +32,6 @@ export class TeamsService {
     if (image) {
       const s3Bucket = process.env.AWS_S3_BUCKET as string;
       const s3Region = process.env.AWS_REGION as string;
-      
       url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
     }
 
@@ -45,45 +44,47 @@ export class TeamsService {
     });
 
     await this.teamsRepository.save(newTeam);
-    return newTeam
+    this.logger.verbose(`팀 생성 완료: ${newTeam.team_name}`);
+    return newTeam;
   }
 
   // 모든 팀 조회
   async getAllTeams(): Promise<Team[]> {
-    this.logger.verbose(`Retrieving all Teams`);
-
+    this.logger.verbose('모든 팀 조회 요청');
     const foundTeams = await this.teamsRepository.find();
-
-    this.logger.verbose(`Retrieved all Teams successfully`);
+    this.logger.verbose('모든 팀 조회 성공');
     return foundTeams;
   }
 
-  // 팀 id로 조회
+  // 팀 상세 조회 by id
   async getTeamDetailById(id: number): Promise<Team> {
-    this.logger.verbose(`Retrieving a team by id: ${id}`);
+    this.logger.verbose(`팀 상세 조회 요청 - ID: ${id}`);
+
     const foundTeam = await this.teamsRepository
-    .createQueryBuilder('team')
-    .leftJoinAndSelect('team.captain', 'captain')
-    .where('team.team_id = :id', { id })
-    .getOne();
-    
+      .createQueryBuilder('team')
+      .leftJoinAndSelect('team.captain', 'captain')
+      .where('team.team_id = :id', { id })
+      .getOne();
+
     if (!foundTeam) {
       throw new NotFoundException(`Team with ID ${id} not found`);
     }
-    this.logger.verbose(`Retrieving a team by id${id} details Successfully ${foundTeam}`);
+
+    this.logger.verbose(`팀 상세 조회 성공 - ID: ${id}`);
     return foundTeam;
   }
-  
-  // SEARCH TEAM by Name
+
+  // 팀 이름으로 검색
   async searchTeamsByName(name: string): Promise<Team[]> {
-    this.logger.verbose(`Searching teams by name: ${name}`);
-  
+    this.logger.verbose(`팀 이름 검색 요청 - 이름: ${name}`);
+
     return await this.teamsRepository.find({
       where: { team_name: Like(`%${name}%`) },
       relations: ['captain'],
     });
   }
-  // UPDATE TEAM
+
+  // 팀 수정
   async updateTeam(
     id: number,
     updateTeamDto: UpdateTeamRequestDto,
@@ -91,63 +92,79 @@ export class TeamsService {
   ): Promise<void> {
     const team = await this.getTeamDetailById(id);
 
-  // 기존 이미지가 존재하고 새로운 이미지가 업로드되었을 경우
-  if (team.team_logo && image) {
-    const s3 = new S3();
-    const s3Bucket = process.env.AWS_S3_BUCKET as string;
-    const key = team.team_logo.split('.amazonaws.com/')[1]; // 기존 이미지 key 추출
+    if (team.team_logo && image) {
+      const s3 = new S3();
+      const s3Bucket = process.env.AWS_S3_BUCKET as string;
+      const key = team.team_logo.split('.amazonaws.com/')[1];
 
-    try {
-      await s3
-        .deleteObject({
-          Bucket: s3Bucket,
-          Key: key,
-        })
-        .promise();
+      try {
+        await s3
+          .deleteObject({
+            Bucket: s3Bucket,
+            Key: key,
+          })
+          .promise();
 
-      this.logger.verbose(`🗑️ 기존 이미지 삭제 완료: ${key}`);
-    } catch (error) {
-      this.logger.error(`❌ 기존 이미지 삭제 실패: ${error.message}`);
+        this.logger.verbose(`🗑️ 기존 이미지 삭제 완료: ${key}`);
+      } catch (error) {
+        this.logger.error(`❌ 기존 이미지 삭제 실패: ${error.message}`);
+      }
     }
+
+    if (image) {
+      const s3Bucket = process.env.AWS_S3_BUCKET as string;
+      const s3Region = process.env.AWS_REGION as string;
+      const logoUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
+      team.team_logo = logoUrl;
+    }
+
+    Object.assign(team, updateTeamDto);
+    await this.teamsRepository.save(team);
+
+    this.logger.verbose(`팀 수정 완료 - ID: ${id}`);
   }
 
-  // 새로운 이미지가 업로드된 경우, URL 업데이트
-  if (image) {
-    const s3Bucket = process.env.AWS_S3_BUCKET as string;
-    const s3Region = process.env.AWS_REGION as string;
-    const logoUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(image as any).key}`;
-    team.team_logo = logoUrl;
-  }
-
-  Object.assign(team, updateTeamDto); // 텍스트 필드 업데이트
-
-  await this.teamsRepository.save(team);
-}
-
-  // DELETE TEAM
+  // 팀 삭제
   async removeTeam(id: number): Promise<void> {
     const team = await this.getTeamDetailById(id);
     await this.teamsRepository.remove(team);
+    this.logger.verbose(`팀 삭제 완료 - ID: ${id}`);
   }
 
-
+  // 특정 팀 멤버 조회
   async getTeamMembers(teamId: number): Promise<User[]> {
     const team = await this.teamsRepository.findOne({
       where: { team_id: teamId },
     });
-  
+
     if (!team) {
       throw new NotFoundException('팀을 찾을 수 없습니다.');
     }
-  
+
     const approvedMembers = await this.teamMemberJoinRepository
       .createQueryBuilder('join')
       .leftJoinAndSelect('join.user', 'user')
       .where('join.teamTeamId = :teamId', { teamId })
       .andWhere('join.status = :status', { status: JoinStatus.APPROVED })
       .getMany();
-  
-    return approvedMembers.map((join) => (join.user));
-  }  
-  
+
+    this.logger.verbose(`팀 멤버 조회 성공 - 팀 ID: ${teamId}`);
+    return approvedMembers.map((join) => join.user);
+  }
+
+  // 승수 순으로 팀 조회
+async getTeamsByWins(): Promise<Team[]> {
+  return this.teamsRepository.find({
+    order: { wins: 'DESC' },
+    relations: ['captain'],  // 필요하다면 다른 관계도 추가 가능
+  });
+}
+
+  // 승수 +1
+  async incrementWins(id: number): Promise<void> {
+    const team = await this.getTeamDetailById(id);
+    team.wins += 1;
+    await this.teamsRepository.save(team);
+    this.logger.verbose(`승수 증가 완료 - 팀 ID: ${id}, 현재 승수: ${team.wins}`);
+  }
 }

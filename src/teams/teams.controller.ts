@@ -1,18 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  HttpStatus,
-  Logger,
-  UseInterceptors,
-  UploadedFile,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
+import {Controller,Get,Post,Body,Patch,Param,Delete,HttpStatus,Logger,UseInterceptors,UploadedFile,UseGuards,ParseIntPipe,} from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { CreateTeamRequestDto } from './dto/create-team-request.dto';
 import { TeamResponseDto } from './dto/team-response.dto';
@@ -36,7 +22,7 @@ export class TeamsController {
 
   constructor(private readonly teamsService: TeamsService) {}
 
-  // CREATE TEAM
+  // 팀 생성
   @Post('/')
   @UseInterceptors(
     FileInterceptor(
@@ -51,117 +37,151 @@ export class TeamsController {
     @Body() createTeamRequestDto: CreateTeamRequestDto,
     @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponseDto<TeamResponseDto>> {
-    this.logger.verbose(
-      `Received data: ${JSON.stringify(createTeamRequestDto)}`,
-    );
-    if (!createTeamRequestDto) {
-      this.logger.error('Request body is missing or invalid');
-      throw new Error('Invalid request body');
-    }
+    this.logger.verbose(`팀 생성 요청: ${JSON.stringify(createTeamRequestDto)}`);
+
     const createdTeam = await this.teamsService.createTeam(
       logginedUser,
       createTeamRequestDto,
       image,
     );
 
-    this.logger.verbose(`Team title with created Successfully`);
     return new ApiResponseDto(
       true,
       HttpStatus.CREATED,
-      'Team created Successfully',
+      '팀이 성공적으로 생성되었습니다.',
       new TeamResponseDto(createdTeam),
     );
   }
 
-  // READ all team
+  // 팀 전체 조회
   @Get('/')
   async getAllTeams(): Promise<ApiResponseDto<TeamResponseDto[]>> {
-    this.logger.verbose(`Try to Retrieving all Teams`);
+    this.logger.verbose('모든 팀 조회 요청');
 
     const teams: Team[] = await this.teamsService.getAllTeams();
-    const teamsResponseDto = teams.map((team) => new TeamResponseDto(team));
+    const teamDtos = teams.map((team) => new TeamResponseDto(team));
 
-    this.logger.verbose(`Retrieved all Articles successfully`);
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
-      'Team list retrive Successfully',
-      teamsResponseDto,
+      '팀 목록 조회 성공',
+      teamDtos,
     );
   }
 
-  // READ - by id
+  // 팀 상세 조회
   @Get('/:id/detail')
   async getTeamDetailById(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponseDto<TeamResponseDto>> {
-    this.logger.verbose(`Try to Retrieving a team by id: ${id}`);
+    this.logger.verbose(`팀 상세 조회 요청 - ID: ${id}`);
 
-    const teamResponseDto = new TeamResponseDto(
-      await this.teamsService.getTeamDetailById(id),
-    );
+    const team = await this.teamsService.getTeamDetailById(id);
 
-    this.logger.verbose(`Retrieving a team by id${id} details Successfully`);
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
-      'Team retrive Successfully',
-      teamResponseDto,
+      '팀 상세 조회 성공',
+      new TeamResponseDto(team),
     );
   }
 
-  // UPDATE TEAM
+  // 팀 수정
   @Patch('/:id')
   @UseInterceptors(
-    FileInterceptor('image', multerOptionsFactory(new ConfigService(), 'team-logos')),
+    FileInterceptor(
+      'image',
+      multerOptionsFactory(new ConfigService(), 'team-logos'),
+    ),
   )
   @UseGuards(AuthGuard(), RolesGuard)
   @Roles(UserRole.USER)
   async updateTeam(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateTeamDto: UpdateTeamRequestDto,
     @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponseDto<void>> {
+    this.logger.verbose(`팀 수정 요청 - ID: ${id}`);
+
     await this.teamsService.updateTeam(id, updateTeamDto, image);
-    return new ApiResponseDto(true, HttpStatus.OK, 'Team updated successfully');
+
+    return new ApiResponseDto(true, HttpStatus.OK, '팀 수정 성공');
   }
 
-  // DELETE TEAM
+  // 팀 삭제
   @Delete('/:id')
-  async removeTeam(@Param('id') id: number): Promise<ApiResponseDto<void>> {
+  async removeTeam(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponseDto<void>> {
+    this.logger.verbose(`팀 삭제 요청 - ID: ${id}`);
+
     await this.teamsService.removeTeam(id);
-    return new ApiResponseDto(true, HttpStatus.OK, 'Team deleted successfully');
+
+    return new ApiResponseDto(true, HttpStatus.OK, '팀 삭제 성공');
   }
 
-  // SEARCH TEAMS BY NAME
+  // 팀 이름으로 검색
   @Get('/search/:name')
   async searchTeamsByName(
     @Param('name') name: string,
   ): Promise<ApiResponseDto<TeamResponseDto[]>> {
+    this.logger.verbose(`팀 이름 검색 요청 - 이름: ${name}`);
+
     const teams = await this.teamsService.searchTeamsByName(name);
-    const teamsResponseDto = teams.map((team) => new TeamResponseDto(team));
+    const teamDtos = teams.map((team) => new TeamResponseDto(team));
+
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
-      'Teams retrieved successfully',
-      teamsResponseDto,
+      '팀 검색 성공',
+      teamDtos,
     );
   }
 
-  // 팀 멤버 조회
-  @Get(':teamId/members')
+  // 특정 팀의 멤버 조회
+  @Get('/:teamId/members')
   async getTeamMembers(
     @Param('teamId', ParseIntPipe) teamId: number,
   ): Promise<ApiResponseDto<UserResponseDto[]>> {
+    this.logger.verbose(`팀 멤버 조회 요청 - 팀 ID: ${teamId}`);
+
     const members: User[] = await this.teamsService.getTeamMembers(teamId);
-    const membersResponseDto = members.map(
-      (member) => new UserResponseDto(member),
-    );
+    const memberDtos = members.map((member) => new UserResponseDto(member));
+
     return new ApiResponseDto(
       true,
       HttpStatus.OK,
-      'Teams retrieved successfully',
-      membersResponseDto,
+      '팀 멤버 조회 성공',
+      memberDtos,
     );
+  }
+
+
+  // 승수 순 추천 목록 조회
+@Get('/recommend/by-wins')
+async getTeamsByWins(): Promise<ApiResponseDto<TeamResponseDto[]>> {
+  this.logger.verbose('승수 순 추천 목록 조회 요청');
+
+  const teams = await this.teamsService.getTeamsByWins();
+  const teamDtos = teams.map((team) => new TeamResponseDto(team));
+
+  return new ApiResponseDto(
+    true,
+    HttpStatus.OK,
+    '승수 순 추천 목록 조회 성공',
+    teamDtos,
+  );
+}
+
+  // 승수 +1
+  @Patch('/:id/increment-wins')
+  async incrementWins(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponseDto<void>> {
+    this.logger.verbose(`승수 증가 요청 - 팀 ID: ${id}`);
+
+    await this.teamsService.incrementWins(id);
+
+    return new ApiResponseDto(true, HttpStatus.OK, '승수 증가 성공');
   }
 }
