@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class UpdateTeamRequestDto {
   @IsOptional()
@@ -16,4 +16,9 @@ export class UpdateTeamRequestDto {
   @IsOptional()
   @IsUrl({}, { message: 'Invalid URL format' })
   team_logo?: string; // S3 이미지 URL 업데이트 가능
+
+  //wins를  추가
+  @IsOptional()
+  @IsNumber()
+  wins?: number;
 }

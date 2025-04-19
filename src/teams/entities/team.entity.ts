@@ -27,6 +27,9 @@ export class Team {
   @Column({ default: 0 })
   rating: number;
 
+  @Column({ default: 0 })
+  wins: number;  // 승수 추가
+
   @CreateDateColumn()
   created_at: Date;
 
