@@ -51,4 +51,17 @@ export class UsersService {
                 throw new ConflictException('Email already exists');
             }
     }
+
+    //find - user eamil
+    async findEmailByNameAndPhone(username: string, phone_number: string): Promise<string> {
+        const user = await this.usersRepository.findOne({
+          where: { username, phone_number },
+        });
+      
+        if (!user) {
+          throw new NotFoundException('해당 정보로 가입된 이메일이 없습니다.');
+        }
+      
+        return user.email;
+      }      
 }

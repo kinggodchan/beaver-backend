@@ -6,6 +6,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/strategies/jwt.guard';
 import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
+import { FindEmailRequestDto } from './dto/find-email.request.dto';
 
 @Controller('api/user')
 export class UserController {
@@ -52,4 +53,19 @@ export class UserController {
   }
   
   //조회, 수정, 삭제(접근 권한이 필요하다. ==> ADMIN, 또는 본인)
+
+  //유저의 이메일 찾기
+  @Post('/find-email')
+async findEmail(
+  @Body() findEmailRequestDto: FindEmailRequestDto,
+): Promise<ApiResponseDto<{ email: string }>> {
+  const { username, phone_number } = findEmailRequestDto;
+  const email = await this.userService.findEmailByNameAndPhone(username, phone_number);
+  return new ApiResponseDto(
+    true,
+    HttpStatus.OK,
+    '이메일 조회 성공',
+    { email },
+  );
+}
 }
