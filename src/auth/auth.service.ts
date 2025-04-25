@@ -1,9 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs'
 import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserRequestDto } from 'src/users/dto/create-user-request.dto';
+import { FindPasswordRequestDto } from './dto/find-password-request.dto';
+import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 
 
 @Injectable()
@@ -89,4 +91,31 @@ async signIn(signInRequestDto: SignInRequestDto): Promise<{ accessToken: string;
         const salt = await bcrypt.genSalt();
         return await bcrypt.hash(password, salt);
     }
+
+    // 아이디(이메일) 기반으로 패스워드 재구성
+    async findPassword(findPasswordDto: FindPasswordRequestDto): Promise<void> {
+      const { email } = findPasswordDto;
+      const user = await this.userService.findUserByEmail(email);
+    
+      if (!user) {
+        throw new NotFoundException('User with this email not found.');
+      }
+    
+      // 👉 여기서 진짜로 이메일 발송 기능이 있으면 추가
+      this.logger.verbose(`Password reset email would be sent to: ${email}`);
+    }
+    
+    async resetPassword(resetPasswordDto: ResetPasswordRequestDto): Promise<void> {
+      const { email, newPassword } = resetPasswordDto;
+      const user = await this.userService.findUserByEmail(email);
+    
+      if (!user) {
+        throw new NotFoundException('User with this email not found.');
+      }
+    
+      const hashedPassword = await this.hashPassword(newPassword);
+      await this.userService.updatePassword(email, hashedPassword);
+    
+      this.logger.verbose(`Password reset successfully for: ${email}`);
+    }   
 }

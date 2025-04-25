@@ -5,6 +5,8 @@ import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
 import { CreateUserRequestDto } from 'src/users/dto/create-user-request.dto';
 import { JwtAuthGuard } from './strategies/jwt.guard';
+import { FindPasswordRequestDto } from './dto/find-password-request.dto';
+import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 
 @Controller('api/auth')
 export class AuthController {
@@ -41,4 +43,17 @@ async signIn(@Body() signInRequestDto: SignInRequestDto, @Res() res: Response): 
   getCurrentUser(@Request() req) {
     return req.user;
   }
+
+  //아이디(이메일)기반으로 패스워드 재구성
+  @Post('/find-password')
+async findPassword(@Body() findPasswordDto: FindPasswordRequestDto): Promise<ApiResponseDto<void>> {
+  await this.authService.findPassword(findPasswordDto);
+  return new ApiResponseDto(true, HttpStatus.OK, 'Password reset link sent to your email');
+}
+
+@Post('/reset-password')
+async resetPassword(@Body() resetPasswordDto: ResetPasswordRequestDto): Promise<ApiResponseDto<void>> {
+  await this.authService.resetPassword(resetPasswordDto);
+  return new ApiResponseDto(true, HttpStatus.OK, 'Password reset successfully');
+}
 }
