@@ -63,5 +63,17 @@ export class UsersService {
         }
       
         return user.email;
-      }      
+      }
+      
+      //패스워드 재구성
+      async updatePassword(email: string, hashedPassword: string): Promise<void> {
+        const user = await this.usersRepository.findOne({ where: { email } });
+        if (!user) {
+          throw new NotFoundException('User not found.');
+        }
+      
+        user.password = hashedPassword;
+        await this.usersRepository.save(user);
+      }
+      
 }
