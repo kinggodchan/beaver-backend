@@ -1,4 +1,4 @@
-import {IsEmail,IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Matches, MaxLength, MinLength} from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { UserRole } from "../entities/user-role.enum";
 
 export class CreateUserRequestDto {
@@ -12,7 +12,8 @@ export class CreateUserRequestDto {
   @IsString()
   @MinLength(8)
   @MaxLength(20)
-  @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: 'Password too weak' })
+  // ✅ 대문자 필수 제거한 비밀번호 정규식
+  @Matches(/^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: 'Password must include lowercase, number, and special character.' })
   password: string;
 
   @IsNotEmpty()
@@ -27,7 +28,8 @@ export class CreateUserRequestDto {
 
   @IsOptional()
   @IsString()
-  @IsPhoneNumber('KR', { message: 'Invalid phone number format' })
+  
+  @Matches(/^01[016789]\d{7,8}$/, { message: 'Invalid Korean phone number format (e.g., 01012345678)' })
   phone_number?: string;
 
   @IsOptional()
