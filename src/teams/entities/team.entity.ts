@@ -1,5 +1,5 @@
 import { User } from 'src/users/entities/user.entity';  // 유저 엔티티 추가
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, CreateDateColumn, UpdateDateColumn, JoinTable, OneToMany, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column,  CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 
 import { Report } from 'src/report/entities/report.entity';
 import { TeamSchedule } from 'src/team-schedule/entities/team-schedule.entity';
@@ -24,11 +24,23 @@ export class Team {
   @Column({ default: 1 })
   member_count: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 1000 })
   rating: number;
 
   @Column({ default: 0 })
   wins: number;  // 승수 추가
+
+  @Column({ default: 0 })
+  draws: number; // 무승부
+
+  @Column({ default: 0 })
+  losses: number; // 패배
+
+  @Column({ default: 0 })
+  goals_for: number;  // 득점
+
+  @Column({ default: 0 })
+  goals_against: number;  // 실점
 
   @CreateDateColumn()
   created_at: Date;
