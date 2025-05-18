@@ -15,6 +15,7 @@ import { UserRole } from 'src/users/entities/user-role.enum';
 import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { UserResponseDto } from 'src/users/dto/user-response.dto';
+import { TeamRankingDto } from './dto/ranking.dto';
 
 @Controller('api/teams')
 export class TeamsController {
@@ -184,4 +185,20 @@ async getTeamsByWins(): Promise<ApiResponseDto<TeamResponseDto[]>> {
 
     return new ApiResponseDto(true, HttpStatus.OK, '승수 증가 성공');
   }
+
+  @Get('/:id/rating')
+  async getTeamRatingById(
+      @Param('id', ParseIntPipe) id: number,
+    ): Promise<ApiResponseDto<TeamRankingDto>> {
+  
+      const team = await this.teamsService.getTeamDetailById(id);
+  
+      return new ApiResponseDto(
+        true,
+        HttpStatus.OK,
+        '팀 상세 조회 성공',
+        new TeamRankingDto(team),
+      );
+    }
 }
+
