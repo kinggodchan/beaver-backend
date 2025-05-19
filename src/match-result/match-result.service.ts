@@ -17,7 +17,7 @@ import { Team } from 'src/teams/entities/team.entity';
 
 @Injectable()
 export class MatchResultService {
-  private readonly logger = new Logger(MatchResult.name);
+  private readonly logger = new Logger(MatchResultService.name);
   constructor(
     @InjectRepository(MatchResult)
     private matchResultRepo: Repository<MatchResult>,
@@ -37,6 +37,7 @@ export class MatchResultService {
   ): Promise<void> {
     const match = await this.matchRepo.findOne({
       where: { match_id: matchId },
+      relations: ['host_team', 'opponent_team', 'host_team.captain'],
     });
 
     if (!match) throw new NotFoundException('경기를 찾을 수 없습니다.');
@@ -46,7 +47,10 @@ export class MatchResultService {
         '경기 결과는 주최팀 주장만 입력할 수 있습니다.',
       );
     }
-
+    this.logger.verbose(
+      `매치 호스트와 레이팅 ${match.host_team} ${match.host_team.rating}`,
+      `매치 상대와 레이팅 ${match.opponent_team} ${match.opponent_team.rating}`,
+    );
     const existing = await this.matchResultRepo.findOne({ where: { match } });
     if (existing) throw new ConflictException('이미 결과가 등록된 경기입니다.');
 
@@ -54,8 +58,9 @@ export class MatchResultService {
       match,
       host_score: dto.host_score,
       opponent_score: dto.opponent_score,
+      host_rating: match.host_team.rating,
+      opponent_rating: match.opponent_team.rating,
     });
-
     await this.matchResultRepo.save(result);
 
     match.result = result;
@@ -64,9 +69,20 @@ export class MatchResultService {
 
     const resultedMatch = await this.matchRepo.findOne({
       where: { match_id: matchId },
+      relations: ['host_team', 'opponent_team', 'result'],
     });
     if (!resultedMatch) throw new NotFoundException('경기를 찾을 수 없습니다.');
+    await this.matchRepo.save(resultedMatch);
     await this.setRating(resultedMatch);
+
+    // rating 변화저장을 위함
+    const resultedMatch2 = await this.matchRepo.findOne({
+      where: { match_id: matchId },
+      relations: ['host_team', 'opponent_team', 'result'],
+    });
+    if (!resultedMatch2)
+      throw new NotFoundException('경기를 찾을 수 없습니다.');
+    await this.matchRepo.save(resultedMatch2);
   }
 
   // 결과 조회
@@ -100,7 +116,7 @@ export class MatchResultService {
   ): Promise<void> {
     const match = await this.matchRepo.findOne({
       where: { match_id: matchId },
-      relations: ['host_team', 'host_team.captain', 'result'],
+      relations: ['host_team', 'opponent_team', 'host_team.captain', 'result'],
     });
 
     if (!match) throw new NotFoundException('경기를 찾을 수 없습니다.');
@@ -114,6 +130,8 @@ export class MatchResultService {
       // 기존 결과 수정
       match.result.host_score = dto.host_score;
       match.result.opponent_score = dto.opponent_score;
+      match.result.host_rating = match.host_team.rating;
+      match.result.opponent_rating = match.opponent_team.rating;
       await this.matchResultRepo.save(match.result);
     } else {
       // 새 결과 생성
@@ -121,13 +139,29 @@ export class MatchResultService {
         match,
         host_score: dto.host_score,
         opponent_score: dto.opponent_score,
+        host_rating: match.host_team.rating,
+        opponent_rating: match.opponent_team.rating,
       });
       await this.matchResultRepo.save(result);
 
       match.result = result;
     }
+    this.logger.verbose(
+      `매치 호스트와 레이팅 ${match.host_team} ${match.host_team.rating}`,
+    );
     await this.matchRepo.save(match);
     await this.setRating(match);
+
+    // const resultedMatch = await this.matchRepo.findOne({
+    //   where: { match_id: matchId },
+    //   relations: ['host_team', 'opponent_team', 'result'],
+    // });
+    // if (!resultedMatch) throw new NotFoundException('경기를 찾을 수 없습니다.');
+
+    // match.result.host_rating_after = match.host_team.rating;
+    // match.result.opponent_rating_after = match.opponent_team.rating;
+    // await this.matchResultRepo.save(resultedMatch.result);
+    // await this.matchRepo.save(resultedMatch);
   }
 
   remove(id: number) {
@@ -204,6 +238,10 @@ export class MatchResultService {
       );
     }
 
+    result.host_rating_after = host.rating;
+    result.opponent_rating_after = opponent.rating;
+    
+    await this.matchResultRepo.save(result)
     await this.teamRepo.save(host);
     await this.teamRepo.save(opponent);
   }

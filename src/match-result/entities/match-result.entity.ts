@@ -16,6 +16,18 @@ export class MatchResult {
   @Column()
   opponent_score: number;
 
+  @Column()
+  host_rating: number;
+
+  @Column()
+  opponent_rating: number;
+  
+  @Column()
+  host_rating_after: number;
+
+  @Column()
+  opponent_rating_after: number;
+
   @CreateDateColumn()
   created_at: Date;
 
