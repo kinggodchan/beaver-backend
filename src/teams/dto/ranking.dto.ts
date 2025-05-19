@@ -1,23 +1,27 @@
-import { Team } from "../entities/team.entity";
+import { Team } from '../entities/team.entity';
 
 export class TeamRankingDto {
   team_id: number;
   team_name: string;
+  games: number;
   wins: number;
   draws: number;
   losses: number;
   goals_for: number;
   goals_against: number;
+  goals_difference: number;
   rating: number;
 
   constructor(team: Team) {
-      this.team_id = team.team_id;
-      this.team_name = team.team_name;
-      this.wins = team.wins;
-      this.draws = team.draws;
-      this.losses = team.losses;
-      this.goals_for = team.goals_for;
-      this.goals_against = team.goals_against;
-      this.rating = team.rating;
-    }
+    this.team_id = team.team_id;
+    this.team_name = team.team_name;
+    this.games = team.wins + team.draws + team.losses;
+    this.wins = team.wins;
+    this.draws = team.draws;
+    this.losses = team.losses;
+    this.goals_for = team.goals_for;
+    this.goals_against = team.goals_against;
+    this.goals_difference = team.goals_for - this.goals_against;
+    this.rating = team.rating;
+  }
 }

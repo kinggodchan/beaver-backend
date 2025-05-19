@@ -200,5 +200,21 @@ async getTeamsByWins(): Promise<ApiResponseDto<TeamResponseDto[]>> {
         new TeamRankingDto(team),
       );
     }
+
+  // 전체 팀 순위 조회
+  @Get('/rating')
+  async getAllTeamsRating(): Promise<ApiResponseDto<TeamRankingDto[]>> {
+    this.logger.verbose('모든 팀 조회 요청');
+
+    const teams: Team[] = await this.teamsService.getAllTeams();
+    const teamDtos = teams.map((team) => new TeamRankingDto(team));
+
+    return new ApiResponseDto(
+      true,
+      HttpStatus.OK,
+      '팀 목록 조회 성공',
+      teamDtos,
+    );
+  }
 }
 
