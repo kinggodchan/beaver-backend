@@ -14,6 +14,7 @@ import { Match } from 'src/match/entities/match.entity';
 import { MatchStatus } from 'src/match/entities/math-status.enum';
 import { User } from 'src/users/entities/user.entity';
 import { Team } from 'src/teams/entities/team.entity';
+import { RatingResponseDto } from './dto/rating-response.dto';
 
 @Injectable()
 export class MatchResultService {
@@ -164,6 +165,34 @@ export class MatchResultService {
     // await this.matchRepo.save(resultedMatch);
   }
 
+  // 특정 팀의 모든 경기 결과 조회
+  async getTeamRatingHistory(teamId: number): Promise<RatingResponseDto[]> {
+    const matches = await this.matchRepo.find({
+      where: [
+        { host_team: { team_id: teamId } },
+        { opponent_team: { team_id: teamId } },
+      ],
+      relations: ['result', 'host_team', 'opponent_team'], // host_team 포함 필요
+      order: { match_date: 'ASC' },
+    });
+
+    return matches
+      .filter((match) => match.result)
+      .map((match) => {
+        const isHost = match.host_team.team_id === teamId;
+        const result = match.result;
+
+        return new RatingResponseDto({
+          matchId: match.match_id,
+          matchDate: match.match_date,
+          before: isHost ? result.host_rating : result.opponent_rating,
+          after: isHost
+            ? result.host_rating_after
+            : result.opponent_rating_after,
+        });
+      });
+  }
+
   remove(id: number) {
     return `This action removes a #${id} matchResult`;
   }
@@ -240,8 +269,8 @@ export class MatchResultService {
 
     result.host_rating_after = host.rating;
     result.opponent_rating_after = opponent.rating;
-    
-    await this.matchResultRepo.save(result)
+
+    await this.matchResultRepo.save(result);
     await this.teamRepo.save(host);
     await this.teamRepo.save(opponent);
   }

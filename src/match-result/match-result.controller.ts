@@ -11,6 +11,7 @@ import { UserRole } from 'src/users/entities/user-role.enum';
 import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
 import { MatchResult } from './entities/match-result.entity';
 import { MatchResultResponseDto } from './dto/match-result-response.dto';
+import { RatingResponseDto } from './dto/rating-response.dto';
 
 @Controller('api/matches')
 export class MatchResultController {
@@ -36,6 +37,15 @@ export class MatchResultController {
     const result = new MatchResultResponseDto(
       await this.matchResultService.getResultByMatchId(matchId),
     );
+    return new ApiResponseDto(true, HttpStatus.OK, '경기 결과 조회 성공', result);
+  }
+
+  // 특정 팀의 모든 경기 결과 조회
+  @Get('/:teamId/rating')
+  async getResultByTeam(
+    @Param('teamId', ParseIntPipe) teamId: number,
+  ): Promise<ApiResponseDto<RatingResponseDto[]>> {
+    const result = await this.matchResultService.getTeamRatingHistory(teamId);
     return new ApiResponseDto(true, HttpStatus.OK, '경기 결과 조회 성공', result);
   }
 

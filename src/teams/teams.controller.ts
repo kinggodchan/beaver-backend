@@ -206,7 +206,7 @@ async getTeamsByWins(): Promise<ApiResponseDto<TeamResponseDto[]>> {
   async getAllTeamsRating(): Promise<ApiResponseDto<TeamRankingDto[]>> {
     this.logger.verbose('모든 팀 조회 요청');
 
-    const teams: Team[] = await this.teamsService.getAllTeams();
+    const teams: Team[] = await this.teamsService.getAllTeamsOrderByRating();
     const teamDtos = teams.map((team) => new TeamRankingDto(team));
 
     return new ApiResponseDto(

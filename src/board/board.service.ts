@@ -141,7 +141,7 @@ export class BoardService {
     return tradePost;
   }
 
-  /** 📌 거래 게시글 생성 */
+  // 거래 게시글 생성
   async createTradePost(
     dto: CreateTradePostDto,
     file?: Express.Multer.File,
@@ -156,19 +156,19 @@ export class BoardService {
       url = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${(file as any).key}`;
     }
 
-    // 🟢 게시판 정보 가져오기
+    // 게시판 정보 가져오기
     const board = await this.getBoard(boardId);
     if (!board)
       throw new NotFoundException(`Board with ID ${boardId} not found`);
 
-    // 🟢 사용자 정보 가져오기 (authorId -> author 객체로 변환)
+    // 사용자 정보 가져오기 (authorId -> author 객체로 변환)
     const author = await this.userRepo.findOne({
       where: { user_id: authorId },
     });
     if (!author)
       throw new NotFoundException(`User with ID ${authorId} not found`);
 
-    // 🟢 새로운 거래 게시글 생성
+    // 새로운 거래 게시글 생성
     const tradePost = this.tradePostRepo.create({
       title,
       content,
@@ -176,13 +176,13 @@ export class BoardService {
       trade_status: tradeStatus,
       board,
       file: url,
-      author, // ✅ authorId 대신 author 객체를 직접 할당
+      author, 
     });
 
     return this.tradePostRepo.save(tradePost);
   }
 
-  /** 📌 거래 게시글 수정 */
+  // 거래 게시글 수정
   async updateTradePost(
     id: number,
     dto: UpdateTradePostDto,

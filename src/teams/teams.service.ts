@@ -153,18 +153,32 @@ export class TeamsService {
   }
 
   // 승수 순으로 팀 조회
-async getTeamsByWins(): Promise<Team[]> {
-  return this.teamsRepository.find({
-    order: { wins: 'DESC' },
-    relations: ['captain'],  // 필요하다면 다른 관계도 추가 가능
-  });
-}
+  async getTeamsByWins(): Promise<Team[]> {
+    return this.teamsRepository.find({
+      order: { wins: 'DESC' },
+      relations: ['captain'], // 필요하다면 다른 관계도 추가 가능
+    });
+  }
 
   // 승수 +1
   async incrementWins(id: number): Promise<void> {
     const team = await this.getTeamDetailById(id);
     team.wins += 1;
     await this.teamsRepository.save(team);
-    this.logger.verbose(`승수 증가 완료 - 팀 ID: ${id}, 현재 승수: ${team.wins}`);
+    this.logger.verbose(
+      `승수 증가 완료 - 팀 ID: ${id}, 현재 승수: ${team.wins}`,
+    );
   }
+
+  // 랭킹 순
+  async getAllTeamsOrderByRating(): Promise<Team[]> {
+    return this.teamsRepository
+      .createQueryBuilder('team')
+      .orderBy('team.rating', 'DESC')
+      .addOrderBy('team.wins', 'DESC')
+      .addOrderBy('team.goals_for - team.goals_against', 'DESC')
+      .getMany();
+  }
+
+  
 }
